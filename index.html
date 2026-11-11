@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>وردل فارسی | کلمه‌بازی مدرن و مینیمال</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#090d16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="بازی محبوب حدس کلمات وردل به زبان شیرین فارسی، مینیمال، مدرن و کاملاً آفلاین با کیبورد بزرگ مخصوص گوشی">
+
+  <!-- Manifest Data URI -->
+  <link rel="manifest" href="data:application/manifest+json;utf-8,%7B%22name%22%3A%22%D9%88%D8%B1%D8%AF%D9%84%20%D9%81%D8%A7%D8%B1%D8%B3%DB%8C%22%2C%22short_name%22%3A%22WordleFA%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23090d16%22%2C%22theme_color%22%3A%22%23090d16%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20100%20100'%3E%3Crect%20width%3D'100'%20height%3D'100'%20rx%3D'20'%20fill%3D'%2310b981'%2F%3E%3Ctext%20x%3D'50'%20y%3D'68'%20font-size%3D'50'%20font-weight%3D'bold'%20text-anchor%3D'middle'%20fill%3D'%23ffffff'%3E%D9%88%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
+  <!-- Persian Font Vazirmatn -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Tailwind CSS 3.4.17 -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Vazirmatn', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            },
+            dark: {
+              bg: '#090d16',
+              surface: '#111827',
+              card: '#161f30',
+              border: '#232f48'
+            }
+          },
+          animation: {
+            'pop': 'pop 0.15s ease-in-out',
+            'shake': 'shake 0.5s ease-in-out',
+            'flip-in': 'flipIn 0.3s ease-in forwards',
+            'flip-out': 'flipOut 0.3s ease-out forwards',
+            'bounce-subtle': 'bounceSubtle 0.6s ease-in-out',
+          },
+          keyframes: {
+            pop: {
+              '0%': { transform: 'scale(0.85)' },
+              '50%': { transform: 'scale(1.1)' },
+              '100%': { transform: 'scale(1)' },
+            },
+            shake: {
+              '0%, 100%': { transform: 'translateX(0)' },
+              '20%, 60%': { transform: 'translateX(-6px)' },
+              '40%, 80%': { transform: 'translateX(6px)' },
+            },
+            bounceSubtle: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- LZ-String Library for Offline Compressed Storage -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+
+  <!-- Confetti for win celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    body {
+      background-color: #090d16;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+    }
+    .tile {
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s, border-color 0.4s;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+    }
+    .tile.flipped {
+      transform: rotateX(360deg);
+    }
+    .key-btn {
+      transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .key-btn:active {
+      transform: scale(0.92);
+      filter: brightness(1.25);
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-emerald-500/30 overflow-x-hidden">
+
+  <!-- Mobile App Container -->
+  <div class="w-full max-w-md mx-auto min-h-screen flex flex-col justify-between px-2 sm:px-3 py-2 sm:py-3">
+
+    <!-- Top Navigation / Header -->
+    <header class="w-full border-b border-slate-800/80 pb-2 mb-1.5">
+      <div class="flex items-center justify-between">
+        
+        <!-- Left Action Buttons -->
+        <div class="flex items-center gap-1.5">
+          <button id="btn-help" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 active:scale-95 text-slate-300 flex items-center justify-center transition border border-slate-700/50 shadow-sm" title="راهنمای بازی">
+            <i class="fa-solid fa-circle-question text-base"></i>
+          </button>
+          <button id="btn-stats" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 active:scale-95 text-slate-300 flex items-center justify-center transition border border-slate-700/50 shadow-sm" title="آمار و کارنامه">
+            <i class="fa-solid fa-chart-simple text-base"></i>
+          </button>
+          <button id="btn-words" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 active:scale-95 text-slate-300 flex items-center justify-center transition border border-slate-700/50 shadow-sm" title="بانک کلمات">
+            <i class="fa-solid fa-book-bookmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- App Brand Logo -->
+        <div class="flex flex-col items-center">
+          <div class="flex items-center gap-1.5 cursor-pointer" id="btn-brand">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-md shadow-emerald-500/20">
+              <span class="text-white font-extrabold text-sm">و</span>
+            </div>
+            <h1 class="text-lg font-black tracking-tight bg-gradient-to-l from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
+              وردل فارسی
+            </h1>
+          </div>
+          <!-- Current Mode Badge -->
+          <div class="flex items-center gap-1 mt-0.5">
+            <span id="badge-mode-length" class="text-[10px] font-medium text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-1.5 py-0.2 rounded-md">۵ حرفی</span>
+            <span id="badge-mode-type" class="text-[10px] font-medium text-blue-400 bg-blue-950/60 border border-blue-800/60 px-1.5 py-0.2 rounded-md">بازی آزاد</span>
+          </div>
+        </div>
+
+        <!-- Right Action Buttons -->
+        <div class="flex items-center gap-1.5">
+          <button id="btn-restart" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 active:scale-95 text-slate-300 flex items-center justify-center transition border border-slate-700/50 shadow-sm" title="کلمه جدید / بازنشانی">
+            <i class="fa-solid fa-rotate-right text-sm"></i>
+          </button>
+          <button id="btn-settings" class="w-9 h-9 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 active:scale-95 text-slate-300 flex items-center justify-center transition border border-slate-700/50 shadow-sm" title="تنظیمات">
+            <i class="fa-solid fa-gear text-base"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Quick Mode Switcher Tabs -->
+      <div class="flex items-center justify-between mt-2 bg-slate-900/90 p-1 rounded-xl border border-slate-800/90 text-xs">
+        <span class="text-slate-400 font-medium px-2 flex items-center gap-1 text-[11px]">
+          <i class="fa-solid fa-ruler-horizontal text-emerald-400 text-xs"></i>
+          طول کلمه:
+        </span>
+        <div class="flex items-center gap-1">
+          <button data-len="3" class="mode-len-btn px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">۳</button>
+          <button data-len="4" class="mode-len-btn px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">۴</button>
+          <button data-len="5" class="mode-len-btn px-2.5 py-1 rounded-lg font-bold transition bg-emerald-600 text-white shadow-sm shadow-emerald-500/30">۵</button>
+          <button data-len="6" class="mode-len-btn px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white">۶</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Floating Toast Message Container -->
+    <div id="toast-container" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none transition-all duration-300 w-11/12 max-w-xs"></div>
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-banner" class="hidden mb-1.5 bg-gradient-to-r from-emerald-950/80 to-slate-900/90 border border-emerald-500/40 p-2.5 rounded-xl flex items-center justify-between text-xs backdrop-blur-md shadow-lg">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+        </div>
+        <div>
+          <p class="font-bold text-white">نصب برنامه وردل فارسی</p>
+          <p class="text-[10px] text-slate-300">اجرای تماماً آفلاین و سریع در گوشی</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="btn-pwa-install" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded-lg text-[11px] shadow">نصب</button>
+        <button id="btn-pwa-dismiss" class="text-slate-400 hover:text-white p-1 text-xs"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+
+    <!-- Wordle Grid Container (Centered) -->
+    <main class="flex-1 flex flex-col items-center justify-center my-auto py-1">
+      <div id="board" class="grid gap-1.5 transition-all">
+        <!-- Rendered by JS -->
+      </div>
+    </main>
+
+    <!-- Virtual Persian Keyboard (Extra Large & Touch-Friendly) -->
+    <footer class="w-full mt-2 select-none">
+      <div id="keyboard" class="flex flex-col gap-1.5 pb-1 w-full max-w-full">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Status Bar Footer -->
+      <div class="flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800/80 pt-1.5 mt-1 px-1">
+        <div class="flex items-center gap-1.5">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="storage-status">کیبورد بزرگ و روان • LZ-String فعال</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="compression-stats" class="text-slate-400 font-mono">حجم: ۰ بایت</span>
+          <button id="btn-sound-toggle" class="text-slate-400 hover:text-slate-200" title="قطع / وصل صدا">
+            <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+          </button>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- MODAL: HELP -->
+  <div id="modal-help" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 max-h-[90vh] overflow-y-auto shadow-2xl relative">
+      <button class="modal-close-btn absolute top-4 left-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+          <i class="fa-solid fa-circle-question text-base"></i>
+        </div>
+        <h2 class="text-base font-bold text-white">راهنمای بازی وردل فارسی</h2>
+      </div>
+
+      <div class="text-xs text-slate-300 space-y-3 leading-relaxed">
+        <p>کلمه پنهان را در <strong class="text-emerald-400">۶ فرصت</strong> حدس بزنید!</p>
+        <p>پس از هر حدس، رنگ کاشی‌ها تغییر می‌کند:</p>
+
+        <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+          <div class="flex gap-1.5 mb-1.5 justify-center">
+            <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white font-black flex items-center justify-center text-sm shadow">ب</div>
+            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">ه</div>
+            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">ا</div>
+            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">ر</div>
+          </div>
+          <p class="text-[11px] text-emerald-400 font-medium text-center">حرف <span class="font-bold underline">«ب»</span> در جای درست قرار دارد (سبز).</p>
+        </div>
+
+        <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+          <div class="flex gap-1.5 mb-1.5 justify-center">
+            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">س</div>
+            <div class="w-8 h-8 rounded-lg bg-amber-500 text-white font-black flex items-center justify-center text-sm shadow">ل</div>
+            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">ا</div>
+            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">م</div>
+          </div>
+          <p class="text-[11px] text-amber-400 font-medium text-center">حرف <span class="font-bold underline">«ل»</span> در کلمه هست اما در جای دیگر (زرد).</p>
+        </div>
+
+        <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+          <div class="flex gap-1.5 mb-1.5 justify-center">
+            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">ک</div>
+            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">ت</div>
+            <div class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 font-bold flex items-center justify-center text-sm border border-slate-700">ا</div>
+            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-200 font-bold flex items-center justify-center text-sm">ب</div>
+          </div>
+          <p class="text-[11px] text-slate-400 font-medium text-center">حرف <span class="font-bold underline">«ا»</span> در کلمه هدف وجود ندارد (خاکستری).</p>
+        </div>
+
+        <div class="pt-2 border-t border-slate-800 text-[11px] text-emerald-400">
+          <i class="fa-solid fa-keyboard mr-1"></i>
+          دکمه‌های کیبورد به صورت بزرگ و ارگونومیک طراحی شده‌اند تا به راحتی با انگشت لمس شوند.
+        </div>
+      </div>
+
+      <button class="modal-close-btn w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition shadow-md shadow-emerald-600/30">
+        متوجه شدم، شروع بازی!
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: STATS -->
+  <div id="modal-stats" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 max-h-[90vh] overflow-y-auto shadow-2xl relative">
+      <button class="modal-close-btn absolute top-4 left-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+          <i class="fa-solid fa-chart-column text-base"></i>
+        </div>
+        <h2 class="text-base font-bold text-white">کارنامه و آمار بازی</h2>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2 text-center my-4">
+        <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/40">
+          <div id="stat-played" class="text-lg font-black text-white">۰</div>
+          <div class="text-[10px] text-slate-400">بازی‌ها</div>
+        </div>
+        <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/40">
+          <div id="stat-win-rate" class="text-lg font-black text-emerald-400">۰٪</div>
+          <div class="text-[10px] text-slate-400">پیروزی</div>
+        </div>
+        <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/40">
+          <div id="stat-streak" class="text-lg font-black text-amber-400">۰</div>
+          <div class="text-[10px] text-slate-400">زنجیره فعلی</div>
+        </div>
+        <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/40">
+          <div id="stat-max-streak" class="text-lg font-black text-purple-400">۰</div>
+          <div class="text-[10px] text-slate-400">بیشترین</div>
+        </div>
+      </div>
+
+      <div class="my-3">
+        <h3 class="text-xs font-bold text-slate-300 mb-2">توزیع حدس‌ها (تعداد فرصت‌ها)</h3>
+        <div id="guess-distribution" class="space-y-1.5 text-xs"></div>
+      </div>
+
+      <div class="bg-slate-800/40 p-2.5 rounded-xl border border-slate-700/40 text-[11px] text-slate-300 my-3">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-bold flex items-center gap-1 text-emerald-400">
+            <i class="fa-solid fa-file-zipper"></i> فشرده‌سازی با LZ-String
+          </span>
+          <span id="lz-ratio" class="font-mono text-[10px] text-slate-400">۷۵٪ کاهش حجم</span>
+        </div>
+        <p class="text-[10px] text-slate-400">تمامی داده‌ها و آمار با الگوریتم قدرتمند LZ-String فشرده و به صورت ۱۰۰٪ آفلاین ذخیره می‌شوند.</p>
+      </div>
+
+      <div class="flex gap-2 mt-4">
+        <button id="btn-share-result" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/30">
+          <i class="fa-solid fa-share-nodes"></i> اشتراک‌گذاری نتیجه
+        </button>
+        <button id="btn-reset-stats" class="px-3 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-300 py-2 rounded-xl text-xs transition border border-slate-700/60" title="پاکسازی آمار">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SETTINGS -->
+  <div id="modal-settings" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 max-h-[90vh] overflow-y-auto shadow-2xl relative">
+      <button class="modal-close-btn absolute top-4 left-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+          <i class="fa-solid fa-gear text-base"></i>
+        </div>
+        <h2 class="text-base font-bold text-white">تنظیمات بازی</h2>
+      </div>
+
+      <div class="space-y-4 text-xs">
+
+        <!-- Keyboard Size Selector -->
+        <div class="pb-3 border-b border-slate-800">
+          <div class="font-bold text-white mb-1.5 flex items-center justify-between">
+            <span>اندازه کلیدهای کیبورد</span>
+            <span id="current-kb-size-label" class="text-[11px] text-emerald-400">بزرگ (مخصوص لمس آسان)</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-1">
+            <button id="btn-kbsize-large" class="py-2 px-3 rounded-xl border border-emerald-500 bg-emerald-600/20 text-emerald-300 font-bold text-center">
+              بزرگ (پیش‌فرض)
+            </button>
+            <button id="btn-kbsize-xlarge" class="py-2 px-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-bold text-center">
+              فوق‌العاده بزرگ (XL)
+            </button>
+          </div>
+        </div>
+
+        <!-- Setting: Strict Dictionary Validation Toggle -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <div class="font-bold text-white">اعتبارسنجی سخت‌گیرانه دیکشنری</div>
+            <div class="text-[11px] text-slate-400">در صورت خاموش بودن، هر کلمه دلخواه بدون ارور پذیرفته می‌شود</div>
+          </div>
+          <button id="toggle-strict-dict" class="w-11 h-6 rounded-full bg-slate-700 p-0.5 transition flex items-center">
+            <div class="w-5 h-5 rounded-full bg-white transition transform translate-x-0"></div>
+          </button>
+        </div>
+
+        <!-- Setting: Game Mode (Daily vs Free) -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <div class="font-bold text-white">حالت چالش روزانه</div>
+            <div class="text-[11px] text-slate-400">یک کلمه روزانه مشترک بر اساس تاریخ</div>
+          </div>
+          <button id="toggle-daily-mode" class="w-11 h-6 rounded-full bg-slate-700 p-0.5 transition flex items-center">
+            <div class="w-5 h-5 rounded-full bg-white transition transform translate-x-0"></div>
+          </button>
+        </div>
+
+        <!-- Setting: Hard Mode -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <div class="font-bold text-white">حالت دشوار (Hard Mode)</div>
+            <div class="text-[11px] text-slate-400">اجبار به استفاده از حروف سبز قبلی در حدس‌های بعدی</div>
+          </div>
+          <button id="toggle-hard-mode" class="w-11 h-6 rounded-full bg-slate-700 p-0.5 transition flex items-center">
+            <div class="w-5 h-5 rounded-full bg-white transition transform translate-x-0"></div>
+          </button>
+        </div>
+
+        <!-- Setting: Sound Effects -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <div class="font-bold text-white">جلوه‌های صوتی</div>
+            <div class="text-[11px] text-slate-400">صدای کلیدها و رویدادهای بازی با Web Audio</div>
+          </div>
+          <button id="toggle-sound" class="w-11 h-6 rounded-full bg-emerald-600 p-0.5 transition flex items-center">
+            <div class="w-5 h-5 rounded-full bg-white transition transform -translate-x-5"></div>
+          </button>
+        </div>
+
+        <!-- Setting: Haptic Feedback -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <div class="font-bold text-white">لرزش لمسی (ویبره)</div>
+            <div class="text-[11px] text-slate-400">فیدبک لرزشی خفیف در گوشی‌های هوشمند</div>
+          </div>
+          <button id="toggle-vibrate" class="w-11 h-6 rounded-full bg-emerald-600 p-0.5 transition flex items-center">
+            <div class="w-5 h-5 rounded-full bg-white transition transform -translate-x-5"></div>
+          </button>
+        </div>
+
+        <!-- Purge Storage -->
+        <div class="pt-2">
+          <button id="btn-purge-storage" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs transition border border-slate-700">
+            پاکسازی کش محلی و تنظیم مجدد
+          </button>
+        </div>
+
+      </div>
+
+      <button class="modal-close-btn w-full mt-5 bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-xl text-xs transition">
+        بستن
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: WORD BANK VIEWER -->
+  <div id="modal-words" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
+      <button class="modal-close-btn absolute top-4 left-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+          <i class="fa-solid fa-book-bookmark text-base"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-white">بانک واژگان و کلمات هدف</h2>
+          <span id="word-bank-count" class="text-[11px] text-slate-400">۸۶۰ واژه هدف و ۷,۹۰۰ کلمه مجاز</span>
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div class="relative my-2">
+        <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-500 text-xs"></i>
+        <input id="input-search-words" type="text" placeholder="جستجوی کلمه در واژگان..." class="w-full bg-slate-800/80 border border-slate-700/60 rounded-xl pr-8 pl-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="flex gap-1 my-1.5 text-xs">
+        <button data-wtab="all" class="wtab-btn flex-1 py-1 rounded-lg font-bold bg-emerald-600 text-white text-center">همه</button>
+        <button data-wtab="3" class="wtab-btn flex-1 py-1 rounded-lg font-medium bg-slate-800 text-slate-300 text-center">۳ حرفی</button>
+        <button data-wtab="4" class="wtab-btn flex-1 py-1 rounded-lg font-medium bg-slate-800 text-slate-300 text-center">۴ حرفی</button>
+        <button data-wtab="5" class="wtab-btn flex-1 py-1 rounded-lg font-medium bg-slate-800 text-slate-300 text-center">۵ حرفی</button>
+        <button data-wtab="6" class="wtab-btn flex-1 py-1 rounded-lg font-medium bg-slate-800 text-slate-300 text-center">۶ حرفی</button>
+      </div>
+
+      <!-- Word list display chips -->
+      <div id="words-display-container" class="flex-1 overflow-y-auto max-h-60 flex flex-wrap gap-1.5 p-2 bg-slate-950/60 rounded-xl border border-slate-800/80 my-2 content-start"></div>
+
+      <div class="text-[10px] text-slate-400 text-center pt-2 border-t border-slate-800">
+        کلمات کاندید برای حدس و کلمات پاسخ به طور کامل پشتیبانی می‌شوند.
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GAME OVER -->
+  <div id="modal-gameover" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl relative animate-pop">
+      <button class="modal-close-btn absolute top-4 left-4 text-slate-400 hover:text-white text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div id="gameover-icon-box" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl mb-3 shadow-lg">
+        <i id="gameover-icon" class="fa-solid fa-trophy"></i>
+      </div>
+
+      <h2 id="gameover-title" class="text-xl font-black text-white mb-1">فوق‌العاده بود!</h2>
+      <p id="gameover-subtitle" class="text-xs text-slate-300 mb-4">شما کلمه را با موفقیت حدس زدید.</p>
+
+      <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl p-3 mb-4">
+        <div class="text-[11px] text-slate-400 mb-1">کلمه پاسخ:</div>
+        <div id="gameover-word" class="text-2xl font-black tracking-widest text-emerald-400 font-mono">بهار</div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <button id="btn-gameover-share" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30">
+          <i class="fa-solid fa-share-nodes"></i> اشتراک‌گذاری نتیجه با دوستان
+        </button>
+        <button id="btn-gameover-next" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 border border-slate-700">
+          <i class="fa-solid fa-play"></i> شروع بازی بعدی
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    // Embedded Persian Word Banks
+    const TARGET_WORDS = {"3": ["آتش", "آرد", "آهو", "آهن", "ابر", "اسب", "اشک", "اصل", "افت", "انگ", "ببر", "بچه", "بخش", "بدن", "برق", "برگ", "برف", "بست", "بغل", "بمب", "بوی", "بها", "پای", "پدر", "پرچ", "پشم", "پله", "پنج", "پیک", "تاج", "تار", "تاس", "تاپ", "تبر", "تخت", "ترس", "ترک", "ترش", "تست", "تند", "تنگ", "توپ", "توت", "تور", "تیر", "تیغ", "جام", "جان", "جرم", "جشن", "جفت", "جگر", "جلد", "جمع", "جنگ", "جوش", "جوی", "جیب", "چاپ", "چتر", "چرخ", "چسب", "چشم", "چمن", "چنگ", "چوب", "چاه", "چاق", "چای", "چین", "حوض", "حرف", "حسد", "حکم", "حنا", "خار", "خاک", "خام", "خبر", "خدا", "خرس", "خشت", "خشم", "خطا", "خلق", "خون", "دار", "داغ", "دام", "درد", "دره", "دست", "دشت", "دکل", "دوش", "دوغ", "دیگ", "دیو", "ذرت", "ذره", "راز", "راه", "رعد", "رنگ", "روز", "روش", "ریش", "ریگ", "زرد", "زشت", "زلف", "زنگ", "زهر", "زیر", "ساز", "سال", "سبد", "سبز", "سپر", "سقف", "سکه", "سنگ", "سود", "سیب", "سیر", "سیل", "سیم", "شاد", "شاخ", "شال", "شام", "شاه", "شتر", "شعر", "شکر", "شکل", "شمع", "شنا", "شور", "شوق", "شیر", "صبح", "صبر", "صدف", "صلح", "صوت", "طاق", "طاس", "طبل", "طرح", "طرف", "طعم", "طفل", "طلا", "ظرف", "ظلم", "ظهر", "عسل", "عشق", "عصا", "عصر", "عضو", "عقل", "عکس", "علم", "عمق", "عمل", "عمو", "عید", "غار", "غاز", "غذا", "غرب", "غرق", "غزل", "غصه", "غول", "فال", "فتح", "فرش", "فصل", "فضا", "فعل", "فکر", "فلز", "فوج", "فهم", "فیل", "قاب", "قتل", "قدح", "قدر", "قدم", "قرص", "قرض", "قرن", "قسم", "قصر", "قطب", "قفل", "قلب", "قلم", "قند", "قوم", "قوی", "کاخ", "کاش", "کبک", "کدو", "کرم", "کره", "کسب", "کشت", "کفش", "کفن", "کمد", "کمر", "کوه", "کیف", "کیک", "گاو", "گدا", "گذر", "گرد", "گرگ", "گرم", "گلو", "گوش", "لپه", "لحن", "لذت", "لرز", "لطف", "لغت", "ماه", "مرد", "مرز", "مرغ", "مرگ", "مزه", "مشت", "مطب", "مغز", "مفت", "ملخ", "ملک", "موج", "موش", "موز", "مهر", "مهم", "میز", "نان", "نخل", "نرم", "نفت", "نمک", "نور", "نیش", "هدف", "هلو", "هوا", "یاس", "یقه", "یوز", "پهن", "سرو", "شفق", "طنز", "فلک", "سفر", "سحر", "سوپ", "لوح", "مات", "برج", "پوک", "ثمر", "جهل", "حجم", "خرد", "دین", "رزم", "زند", "سمت", "شرع", "صدم", "طلب", "عرف", "فسخ", "قله", "کید", "گود", "لعل", "وام", "یاق", "کود", "نمد", "کچل", "مژه", "فوت", "رود"], "4": ["اتاق", "امید", "انار", "انبر", "ایست", "بازی", "بالش", "بانک", "بلیت", "بهار", "پرچم", "پرده", "پلنگ", "پنبه", "پنیر", "پوست", "پیام", "تلفن", "تمیز", "تنبل", "توری", "تیشه", "جارو", "جدول", "جعبه", "جمعه", "جنگل", "جنوب", "جهان", "جوان", "چاقو", "چراغ", "چکمه", "چوبک", "حباب", "حجاب", "حساب", "حلقه", "حمام", "حمله", "حیات", "خاتم", "خادم", "خاطر", "خانه", "خروس", "خرید", "خزان", "خسرو", "خشاب", "خشکه", "خنده", "خواب", "خوان", "خیار", "خیال", "داور", "دانه", "دختر", "درخت", "دریا", "دفتر", "دکمه", "دماغ", "دهان", "روغن", "روشن", "روان", "ریشه", "زانو", "زبان", "زیبا", "ساحل", "ساعت", "سالن", "سایه", "سپاه", "سرفه", "سرما", "سفره", "سفید", "سلاح", "سمنو", "سنگر", "سوزن", "سوره", "سوسن", "سیبک", "شانه", "شاهد", "شبنم", "شجاع", "شراب", "شربت", "شکار", "شلغم", "شنوا", "شنبه", "شهاب", "شهری", "شیشه", "صاحب", "صادق", "صورت", "طناب", "طوطی", "عابر", "عادل", "عاشق", "عاقل", "عینک", "غروب", "فردا", "فندق", "قارچ", "قاشق", "قاصد", "قایق", "قدرت", "قرآن", "قطار", "قطره", "قلعه", "قوری", "قوطی", "قهوه", "کارد", "کاسه", "کاغذ", "کتاب", "کلاغ", "کلاه", "کلام", "کلید", "کلیه", "کمان", "کوچه", "کوزه", "کیسه", "گردن", "گردو", "گردش", "گربه", "گروه", "گریه", "گلاب", "گلیم", "گندم", "گوشت", "گوهر", "لباس", "لحاف", "ماهی", "مردم", "مشعل", "مشکی", "معلم", "ملکه", "میوه", "ناخن", "نامه", "نجار", "نرگس", "نشاط", "نشان", "نقاب", "نقاش", "نقره", "نقشه", "نقطه", "نگاه", "نماز", "نهنگ", "هدهد", "هدیه", "هزار", "همسر", "هویج", "آرام", "آزاد", "آسان", "آسیب", "آگاه", "آهنگ", "ابری", "احسن", "اختر", "ارزش", "ارزن", "اساس", "اعظم", "امشب", "اهرم", "بابل", "بادی", "بارو", "بازو", "باطل", "باطن", "بالا", "بانو", "بایر", "بخشا", "بدیع", "برتر", "برزخ", "برزن", "برنا", "بستو", "بستر", "بشکه", "بصیر", "بطری", "بقال", "بلبل", "بلور", "بلوغ", "بلوط", "بندر", "بنفش", "بوسه", "بیات", "بینا", "پاتک", "پارو", "پاسخ", "پایش", "پایه", "پدال", "پدید", "پذیر", "پستو", "پشمک", "پلاک", "پلیس", "پماد", "پناه", "پودر", "پوشش", "پوپک", "پویا", "پیچک", "پیکر", "تابش", "تاجر", "تاول", "تبلت", "ترشی", "ترمه", "ترنج", "ترور", "تفنگ", "تگرگ", "تماس", "تمنا", "تنور", "توجه", "توده", "تولد", "تونل", "ثابت", "ثاقب", "ثروت", "جامی", "جاوه", "جذاب", "جرقه", "جلاد", "جلوه", "جواز", "چابک", "چاره", "چاکر", "چالش", "چروک", "چشمه", "حاجب", "حاضر", "حافظ", "حاکم", "حامی", "حاوی", "حجره", "حدود", "حراج", "حسرت", "حصار", "حقوق", "حکمت", "حواس", "حوضه", "حیرت", "حیاط", "خالص", "خاور"], "5": ["آرامش", "آرایش", "آسایش", "آسمان", "آشپزی", "آشکار", "آفتاب", "آلوده", "آلوچه", "آموزش", "آهنگر", "اتفاق", "استخر", "اسفند", "اسکلت", "اصالت", "افسون", "اقامت", "الماس", "انسان", "انگور", "ایثار", "بادام", "باربر", "باریک", "بازرس", "باغچه", "باهوش", "برادر", "برنده", "بستنی", "بسیار", "بشقاب", "بصیرت", "بقالی", "بلندی", "بیمار", "تابان", "تاریخ", "تاریک", "تازگی", "تجارت", "تجدید", "تجربه", "تحقیق", "تخریب", "ترازو", "تربچه", "ترجمه", "ترمیم", "تریاک", "تشویق", "تصادف", "تصویب", "تصویر", "تعطیل", "تعظیم", "تعلیم", "تفتیش", "تفرقه", "تفریح", "تقاضا", "تقلید", "تقویم", "تماشا", "تمرین", "تناسب", "تنگنا", "تهاجم", "تهویه", "توفان", "توفیق", "تکنیک", "تیراژ", "جادوی", "جامعه", "جانان", "جانور", "جایزه", "جلسات", "جمجمه", "جمشید", "جنگجو", "جوانه", "جواهر", "جوراب", "جوشان", "حادثه", "حاشیه", "حافظه", "حجامت", "حضوری", "حقوقی", "حقیقت", "حقیقی", "حلزون", "حماسه", "حمایت", "حوادث", "حوالی", "حوضچه", "حکایت", "حکومت", "خاتمه", "خاطره", "خاموش", "خرداد", "خرچنگ", "خرگوش", "خسارت", "خستگی", "خشخاش", "خشنود", "خلبان", "خمیده", "خوشبو", "خیانت", "دامنه", "درویش", "دستان", "دستور", "دستکش", "دشوار", "دقایق", "دلاور", "دلبند", "دلگرم", "دنیوی", "دهقان", "دهکده", "دودکش", "دوران", "دوستی", "دیدار", "دیروز", "دیوان", "دیگچه", "ذخیره", "رابطه", "رازقی", "رانده", "راهور", "ربوده", "رسالت", "رسانه", "رستمی", "رضایت", "رفتار", "رنگین", "روزین", "روستا", "ریواس", "زاگرس", "زلزله", "زمینه", "زنبیل", "زودپز", "زیارت", "سالار", "ستایش", "سرباز", "سردار", "سرشار", "سفارت", "سفارش", "سواری", "سوغات", "سپهبد", "سیاست", "سیاهی", "سیاوش", "سیمرغ", "شایان", "شجاعت", "شرافت", "شمشاد", "شهادت", "شهامت", "شکایت", "شکوفا", "شیپور", "صاعقه", "صرافی", "طبقات", "طبیعت", "طراوت", "طلایی", "طوفان", "عاقبت", "عبادت", "عدالت", "عروسک", "عکاسی", "فرهنگ", "فریاد", "فولاد", "قاصدک", "قصیده", "مسافر", "مهندس", "میدان", "همدلی", "همراه", "پارچه", "پاییز", "پذیرش", "پرستو", "پرواز", "پروژه", "پزشکی", "پنجره", "پژوهش", "پیروز", "پیشرو", "پیکره", "چاشنی", "چاپگر", "چلچله", "چمدان", "چوپان", "گلایل", "گلنار", "گنجشک", "یاسمن", "یاقوت", "یخچال"], "6": ["آبیاری", "اسطوره", "اسکندر", "انفجار", "انگشتر", "بادبان", "بارانی", "باشکوه", "بالگرد", "باکتری", "بخشایش", "بستگان", "بهداشت", "بیابان", "تاریکی", "تردستی", "تندباد", "خاطرات", "دریایی", "دستبند", "دفترچه", "دلاوری", "دیدبان", "راهنما", "زادبوم", "سازمان", "سرسبزی", "سرپرست", "سرگذشت", "شکارچی", "فیروزه", "همشهری", "پاسبان", "پاسدار", "پاییزی", "پروانه", "پزشکان"]};
+    const DICTIONARY = {"3": ["آبر", "آبی", "آتش", "آرث", "آرد", "آسب", "آشک", "آصل", "آفت", "آفق", "آلا", "آلو", "آمد", "آمل", "آنگ", "آهن", "آهو", "آید", "آیم", "آیی", "ابر", "ابی", "اتش", "ارث", "ارد", "اسب", "اشک", "اصل", "افت", "افق", "الا", "الو", "امد", "امل", "انگ", "اهن", "اهو", "اید", "ایم", "ایی", "باد", "باز", "باغ", "بام", "باک", "ببر", "بخش", "بخل", "بدن", "بذر", "برج", "برد", "برف", "برق", "برم", "بره", "برگ", "بری", "بست", "بغض", "بغل", "بلا", "بمب", "بنا", "بند", "بها", "بوت", "بوس", "بوی", "بچه", "بید", "بیع", "بین", "تاج", "تار", "تاس", "تاپ", "تبر", "تخت", "تخم", "ترس", "ترش", "تره", "ترک", "تست", "تشک", "تند", "تنه", "تنگ", "توت", "تور", "توپ", "تیر", "تیغ", "ثمر", "جام", "جان", "جرم", "جشن", "جغد", "جفت", "جلب", "جلد", "جمع", "جنگ", "جهد", "جهل", "جهم", "جهی", "جوز", "جوش", "جوی", "جگر", "جیب", "حبس", "حجم", "حرص", "حرف", "حسد", "حنا", "حوض", "حکم", "خار", "خام", "خاک", "خبر", "خدا", "خرد", "خرس", "خرم", "خشت", "خشم", "خطا", "خلق", "خوب", "خون", "خوک", "داد", "دار", "داغ", "دام", "درد", "دره", "دست", "دشت", "دغل", "دهد", "دهم", "دهی", "دوش", "دوغ", "دوی", "دکل", "دید", "دیس", "دین", "دیه", "دیو", "دیگ", "ذرت", "ذره", "ذهن", "راز", "راه", "رای", "رزم", "رسد", "رسم", "رسی", "رشت", "رطب", "رعد", "رفت", "رقص", "رنج", "رنگ", "رهن", "رود", "روز", "روش", "روم", "روی", "ریا", "ریش", "ریگ", "زاغ", "زخم", "زدم", "زدی", "زرد", "زشت", "زلف", "زند", "زنم", "زنگ", "زنی", "زهر", "زیر", "زیپ", "ساز", "ساس", "ساق", "سال", "سبد", "سبز", "سحر", "سرا", "سرخ", "سرم", "سرو", "سطل", "سفر", "سقف", "سمت", "سنت", "سنج", "سنگ", "سود", "سوپ", "سوگ", "سپر", "سکه", "سیب", "سیر", "سیل", "سیم", "شاخ", "شاد", "شال", "شام", "شاه", "شتر", "شدم", "شدی", "شرع", "شست", "شعر", "شفق", "شمع", "شنا", "شود", "شور", "شوق", "شوم", "شوی", "شپش", "شکر", "شکل", "شکم", "شیر", "صبح", "صبر", "صدف", "صدم", "صلح", "صوت", "ضبط", "طاس", "طاق", "طبل", "طرح", "طرف", "طعم", "طفل", "طلا", "طلب", "طمع", "طنز", "طول", "ظرف", "ظلم", "ظهر", "عدس", "عرف", "عسل", "عشق", "عصا", "عصب", "عصر", "عضو", "عقد", "عقل", "علف", "علم", "عمق", "عمل", "عمه", "عمو", "عکس", "عید", "غار", "غاز", "غذا", "غرب", "غرق", "غزل", "غصه", "غول", "فال", "فتح", "فرش", "فسخ", "فصل", "فضا", "فعل", "فلز", "فلش", "فلک", "فنچ", "فهم", "فوت", "فوج", "فکر", "فیل", "قاب", "قتل", "قدح", "قدر", "قدم", "قرص", "قرض", "قرن", "قزل", "قسم", "قصر", "قطب", "قطر", "قفل", "قلب", "قلم", "قله", "قند", "قوم", "قوی", "لاک", "لحن", "لذت", "لرز", "لطف", "لعل", "لغت", "لنج", "لنچ", "لوح", "لوز", "لپه", "مات", "مار", "ماش", "ماه", "مبل", "مرد", "مرز", "مرغ", "مرگ", "مزه", "مشت", "مصر", "مطب", "مغز", "مفت", "ملخ", "ملک", "منچ", "مهر", "مهم", "موج", "موز", "موس", "موش", "مچی", "مژه", "مکر", "مگس", "میز", "میش", "نان", "ناو", "نخل", "نرد", "نرم", "نفت", "نمد", "نمک", "نور", "نوه", "نیش", "هبه", "هدف", "هشت", "هلو", "هند", "هوا", "هوش", "وال", "وام", "وجد", "وزغ", "پاک", "پای", "پتو", "پخت", "پدر", "پرد", "پرش", "پرم", "پرچ", "پری", "پزد", "پزم", "پزی", "پشت", "پشم", "پشه", "پله", "پلو", "پمپ", "پنج", "پهن", "پوز", "پول", "پوک", "پیش", "پیپ", "پیچ", "پیک", "چاق", "چاه", "چاپ", "چای", "چتر", "چرخ", "چسب", "چشم", "چفت", "چلو", "چمن", "چنگ", "چوب", "چکش", "چین", "کاخ", "کار", "کاش", "کبد", "کبک", "کدو", "کرج", "کرد", "کرم", "کره", "کسب", "کشت", "کشد", "کشم", "کشو", "کشک", "کشی", "کفش", "کفن", "کلم", "کمد", "کمر", "کند", "کنم", "کنه", "کنی", "کود", "کوه", "کچل", "کید", "کیف", "کین", "کیک", "گاز", "گاو", "گدا", "گذر", "گرد", "گرم", "گرگ", "گشت", "گفت", "گلو", "گود", "گوش", "گوم", "گوی", "یاس", "یاق", "یزد", "یقه", "یمن", "یوز"], "4": ["آباد", "آبان", "آبرو", "آبری", "آبله", "آبکش", "آبیی", "آتاق", "آتشی", "آجاق", "آحسن", "آحمق", "آختر", "آخته", "آرام", "آراک", "آرثی", "آردک", "آردی", "آرزش", "آرزن", "آزاد", "آساس", "آسان", "آسبی", "آسکی", "آسیب", "آشکی", "آصلی", "آعظم", "آفتی", "آفقی", "آلاغ", "آلای", "آلفت", "آلوی", "آمدم", "آمدی", "آمشب", "آملی", "آمید", "آمین", "آنار", "آنبر", "آنبه", "آنگی", "آهرم", "آهنگ", "آهنی", "آهوی", "آگاه", "آیست", "آیند", "آینه", "آیید", "آییم", "اباد", "ابان", "ابرو", "ابری", "ابله", "ابکش", "ابیی", "اتاق", "اتشی", "اجاق", "احسن", "احمق", "اختر", "اخته", "ارام", "اراک", "ارثی", "اردک", "اردی", "ارزش", "ارزن", "ازاد", "اساس", "اسان", "اسبی", "اسکی", "اسیب", "اشکی", "اصلی", "اعظم", "افتی", "افقی", "الاغ", "الای", "الفت", "الوی", "امدم", "امدی", "امشب", "املی", "امید", "امین", "انار", "انبر", "انبه", "انگی", "اهرم", "اهنگ", "اهنی", "اهوی", "اگاه", "ایست", "ایند", "اینه", "ایید", "اییم", "بآید", "بآیم", "بآیی", "بابل", "باخت", "بادی", "بارو", "بازد", "بازم", "بازو", "بازی", "باطل", "باطن", "باغی", "بالا", "بالش", "بالن", "بامی", "باند", "بانو", "بانک", "باکی", "باید", "بایر", "بایم", "بایی", "ببرد", "ببرم", "ببری", "بجهد", "بجهم", "بجهی", "بخشا", "بخشی", "بخلی", "بخیه", "بدنی", "بدهد", "بدهم", "بدهی", "بدیع", "بذری", "برات", "برتر", "برجی", "بردم", "بردی", "برزخ", "برزن", "برسد", "برسم", "برسی", "برفی", "برقی", "برنا", "برنج", "برند", "برهی", "برود", "بروم", "بروی", "برکه", "برگی", "برید", "بریم", "بزدل", "بزند", "بزنم", "بزنی", "بستر", "بستم", "بستو", "بستی", "بشود", "بشوم", "بشوی", "بشکه", "بصیر", "بطری", "بغضی", "بغلی", "بقال", "بلای", "بلبل", "بلور", "بلوز", "بلوط", "بلوغ", "بلیت", "بمبی", "بنای", "بندد", "بندر", "بندم", "بندی", "بنفش", "بهار", "بهای", "بهره", "بهمن", "بوته", "بوتی", "بوسه", "بوسی", "بوفه", "بوکس", "بویی", "بپرد", "بپرم", "بپری", "بپزد", "بپزم", "بپزی", "بچهی", "بکشد", "بکشم", "بکشی", "بکند", "بکنم", "بکنی", "بگود", "بگوم", "بگوی", "بیات", "بیخت", "بیدی", "بیعی", "بیمه", "بینا", "بیند", "بینش", "بینم", "بینی", "تابش", "تابه", "تاجر", "تاجی", "تاخت", "تاری", "تازد", "تازم", "تازی", "تاسی", "تاول", "تاپی", "تبری", "تبسم", "تبلت", "تخته", "تختی", "تخمی", "تراش", "ترسو", "ترسی", "ترشی", "ترمه", "ترنج", "ترهی", "ترور", "ترکی", "تستی", "تشکی", "تعهد", "تفنگ", "تلفن", "تماس", "تمشک", "تمنا", "تمیز", "تنبل", "تندی", "تنهی", "تنور", "تنگی", "تنیس", "توتی", "توجه", "توده", "توری", "توشت", "تولد", "تونل", "توپی", "تگرگ", "تیره", "تیری", "تیشه", "تیغی", "تیهو", "ثابت", "ثاقب", "ثروت", "ثمری", "جاده", "جارو", "جاری", "جامی", "جانی", "جاهل", "جاوه", "جدول", "جذاب", "جراح", "جرقه", "جرمی", "جزوه", "جشنی", "جعبه", "جغدی", "جفتی", "جلاد", "جلبی", "جلدی", "جلوه", "جمعه", "جمعی", "جنوب", "جنگل", "جنگی", "جهاد", "جهان", "جهلی", "جهند", "جهید", "جهیم", "جواز", "جوان", "جوجه", "جودو", "جوزی", "جوشی", "جویی", "جگری", "جیبی", "حاجب", "حاضر", "حافظ", "حامی", "حاوی", "حاکم", "حباب", "حبسی", "حجاب", "حجره", "حجمی", "حدود", "حراج", "حرصی", "حرفی", "حساب", "حسدی", "حسرت", "حصار", "حفاظ", "حقوق", "حلقه", "حمام", "حمله", "حنای", "حواس", "حوضه", "حوضی", "حکمت", "حکمی", "حیات", "حیاط", "حیرت", "حیله", "خاتم", "خادم", "خارک", "خاری", "خاست", "خاطر", "خالص", "خاله", "خامه", "خامی", "خانه", "خاور", "خاکی", "خبری", "خدای", "خردی", "خرسی", "خرما", "خرمی", "خروس", "خرید", "خزان", "خسرو", "خسیس", "خشاب", "خشتی", "خشمی", "خشکه", "خطای", "خلقی", "خلیج", "خنده", "خواب", "خوان", "خوبی", "خورد", "خورم", "خوری", "خونی", "خوکی", "خیار", "خیاط", "خیال", "خیام", "دادم", "دادی", "دارت", "دارد", "دارم", "دارو", "داری", "داشت", "داغی", "دامن", "دامی", "داند", "دانش", "دانم", "دانه", "دانی", "داور", "دایی", "دختر", "دراج", "درخت", "دردی", "درست", "درهی", "دروغ", "دریا", "دستی", "دشتی", "دغلی", "دفاع", "دفتر", "دلار", "دلمه", "دلیر", "دماغ", "دهان", "دهند", "دهید", "دهیم", "دوخت", "دوزد", "دوزم", "دوزی", "دوشی", "دوغی", "دویی", "دکتر", "دکلی", "دکمه", "دیدم", "دیدی", "دیزی", "دیسک", "دیسی", "دینی", "دیهی", "دیوی", "دیگی", "ذرتی", "ذرهی", "ذهنی", "رازی", "راست", "راند", "رانم", "رانی", "راهی", "رایی", "رتیل", "رزمی", "رستم", "رسند", "رسید", "رسیم", "رشته", "رشتی", "رطبی", "رعدی", "رعنا", "رفتم", "رفتی", "رقصی", "رنجی", "رنده", "رنگی", "رهنی", "روان", "رودی", "روزه", "روزی", "روشن", "روشی", "روغن", "رولت", "روند", "روید", "رویم", "رویی", "ریال", "ریای", "ریخت", "ریزد", "ریزم", "ریزی", "ریشه", "ریشی", "ریگی", "زاری", "زاغی", "زانو", "زبان", "زخمی", "زدند", "زدید", "زدیم", "زردی", "زرشک", "زرگر", "زشتی", "زغال", "زلفی", "زمین", "زندی", "زنند", "زنگی", "زنید", "زنیم", "زهری", "زکات", "زیان", "زیبا", "زیره", "زیری", "زیست", "زیلو", "زیپی", "ساحل", "ساخت", "ساری", "سازد", "سازش", "سازم", "سازی", "ساسی", "ساعت", "ساقی", "سالن", "سالی", "سایه", "سبدی", "سبزی", "ستون", "سحری", "سرای", "سرخی", "سرشت", "سرعت", "سرفه", "سرما", "سرمی", "سرور", "سروی", "سرکه", "سطلی", "سعدی", "سفته", "سفره", "سفری", "سفید", "سفیه", "سقفی", "سلاح", "سلام", "سلول", "سماق", "سمتی", "سمنو", "سنتی", "سنجی", "سنگر", "سنگی", "سوخت", "سودی", "سوره", "سوزد", "سوزم", "سوزن", "سوزی", "سوسن", "سوسک", "سوپی", "سوگی", "سویا", "سپاه", "سپری", "سپید", "سکهی", "سیاه", "سیبک", "سیبی", "سیری", "سیلی", "سیمی", "سینه", "شاخه", "شاخی", "شادی", "شاعر", "شالی", "شامی", "شانه", "شاهد", "شاهی", "شاکی", "شبنم", "شبکه", "شتری", "شجاع", "شخصی", "شدند", "شدید", "شدیم", "شراب", "شربت", "شرعی", "شریف", "شستم", "شستی", "شعری", "شغال", "شفقی", "شلغم", "شلیل", "شمعی", "شنای", "شنبه", "شنوا", "شهاب", "شهری", "شورا", "شوری", "شوقی", "شومی", "شوند", "شوهر", "شوید", "شویم", "شویی", "شپشی", "شکار", "شکری", "شکست", "شکلی", "شکمی", "شکند", "شکنم", "شکنی", "شیره", "شیری", "شیشه", "شیون", "صاحب", "صادق", "صبحی", "صبری", "صحرا", "صخره", "صدفی", "صدمی", "صلحی", "صندل", "صوتی", "صورت", "صیاد", "ضبطی", "طاسی", "طاقی", "طبلی", "طراح", "طرحی", "طرفی", "طعمی", "طفلی", "طلاق", "طلای", "طلبی", "طمعی", "طناب", "طنزی", "طوطی", "طولی", "ظالم", "ظرفی", "ظلمی", "ظهری", "عابر", "عادل", "عاشق", "عاقل", "عالی", "عدسی", "عراق", "عرفی", "عروس", "عسلی", "عشقی", "عصای", "عصبی", "عصری", "عضوی", "عطار", "عقاب", "عقدی", "عقرب", "عقلی", "علفی", "علمی", "عمان", "عمقی", "عملی", "عمهی", "عموی", "عناب", "عکاس", "عکسی", "عیدی", "عینک", "غاری", "غازی", "غذای", "غربی", "غرقی", "غروب", "غریق", "غزلی", "غصهی", "غفلت", "غواص", "غولی", "فاسق", "فالی", "فتحی", "فردا", "فرشی", "فروت", "فروش", "فروغ", "فریب", "فسخی", "فصلی", "فضای", "فعلی", "فغان", "فلزی", "فلشی", "فلفل", "فلوس", "فلکی", "فندق", "فندک", "فنچی", "فهمی", "فوتی", "فوجی", "فکری", "فیلی", "قابی", "قارچ", "قاشق", "قاصد", "قاضی", "قاطر", "قایق", "قتلی", "قدحی", "قدرت", "قدری", "قدمی", "قرآن", "قرار", "قران", "قرصی", "قرضی", "قرقی", "قرمز", "قرنی", "قزلی", "قسمی", "قشنگ", "قصاص", "قصری", "قطاب", "قطار", "قطبی", "قطره", "قطری", "قفلی", "قلبی", "قلعه", "قلمی", "قلهی", "قلیه", "قندی", "قهوه", "قوری", "قوطی", "قومی", "قویی", "قیمه", "قیچی", "لاکی", "لباس", "لحاف", "لحنی", "لذتی", "لرزی", "لطفی", "لعلی", "لغتی", "لنجی", "لنچی", "لوحی", "لودو", "لوزی", "لوله", "لپهی", "لکنت", "لیمو", "ماتم", "ماتی", "مادر", "ماری", "ماست", "ماسه", "ماشی", "ماما", "ماند", "مانم", "مانی", "ماهی", "مایع", "مبلی", "مترو", "متهم", "مجرم", "مجری", "محنت", "مداد", "مدرس", "مدیر", "مردم", "مردی", "مرزه", "مرزی", "مرغی", "مرگی", "مریض", "مزهی", "مسرت", "مسکن", "مسگر", "مشتی", "مشعل", "مشهد", "مشکی", "مصری", "مطبی", "معده", "معلم", "مغزی", "مفتی", "ملخی", "ملکه", "ملکی", "منزل", "منشی", "منچی", "مهری", "مهمی", "موجی", "مودم", "موزه", "موزی", "موسی", "موشک", "موشی", "موفق", "مومن", "موکت", "موکل", "مویز", "مچیی", "مژهی", "مکری", "مگسی", "میخک", "میزی", "میشی", "مینا", "مینی", "میوه", "میگو", "نآید", "نآیم", "نآیی", "ناخن", "ناله", "نامه", "نانی", "ناوی", "ناید", "نایم", "نایی", "نبات", "نبرد", "نبرم", "نبری", "نبوغ", "نجات", "نجار", "نجهد", "نجهم", "نجهی", "نخلی", "نخود", "ندهد", "ندهم", "ندهی", "نرده", "نردی", "نرسد", "نرسم", "نرسی", "نرمی", "نرود", "نروم", "نروی", "نرگس", "نزند", "نزنم", "نزنی", "نسیم", "نشاط", "نشان", "نشود", "نشوم", "نشوی", "نظری", "نفتی", "نفرت", "نفقه", "نقاب", "نقاش", "نقره", "نقشه", "نقطه", "نماز", "نمدی", "نمکی", "نهنگ", "نوری", "نوشت", "نوهی", "نویس", "نپرد", "نپرم", "نپری", "نپزد", "نپزم", "نپزی", "نکاح", "نکشد", "نکشم", "نکشی", "نکند", "نکنم", "نکنی", "نگاه", "نگود", "نگوم", "نگوی", "نیزه", "نیشی", "نیلی", "نیما", "نیکو", "هاکی", "هبهی", "هدفی", "هدهد", "هدیه", "هزار", "هشتم", "هشتی", "هلوی", "همسر", "هندی", "هوای", "هودی", "هوشی", "هویج", "والی", "وامی", "وانت", "وبکم", "وجدی", "وزغی", "وزنه", "وصیت", "ووشو", "وکیل", "پاتک", "پارو", "پارچ", "پازل", "پاسخ", "پاکی", "پایش", "پایه", "پایی", "پتوی", "پختم", "پختی", "پدال", "پدری", "پدید", "پذیر", "پرده", "پرست", "پرشی", "پرند", "پرچم", "پرچی", "پرید", "پریم", "پزشک", "پزند", "پزید", "پزیم", "پسته", "پستو", "پشتی", "پشمک", "پشمی", "پشهی", "پلاک", "پلنگ", "پلهی", "پلوی", "پلید", "پلیس", "پماد", "پمپی", "پناه", "پنبه", "پنجی", "پنکه", "پنیر", "پهلو", "پهنی", "پودر", "پوزی", "پوست", "پوشش", "پوشه", "پولی", "پوپک", "پوکی", "پویا", "پیاز", "پیام", "پیشی", "پیپی", "پیچک", "پیچی", "پیکر", "پیکی", "چابک", "چادر", "چاره", "چاقو", "چاقی", "چالش", "چانه", "چاهی", "چاپی", "چاکر", "چایی", "چتری", "چراغ", "چرخی", "چروک", "چسبی", "چشمه", "چشمی", "چفتی", "چلوی", "چمنی", "چنجه", "چنگی", "چهره", "چوبک", "چوبی", "چکشی", "چکمه", "چیتی", "چیلر", "چینی", "ژاپن", "کاخی", "کارت", "کارد", "کارم", "کاری", "کاسه", "کاشت", "کاشی", "کاغذ", "کافر", "کانو", "کاهو", "کباب", "کبدی", "کبکی", "کتاب", "کتان", "کتری", "کتلت", "کثیف", "کدوی", "کرجی", "کردم", "کردی", "کرفس", "کرمی", "کرهی", "کرکس", "کسبی", "کشتم", "کشتی", "کشمش", "کشند", "کشوی", "کشکی", "کشید", "کشیم", "کفاش", "کفشی", "کفنی", "کلاغ", "کلام", "کلاه", "کلبه", "کلمی", "کلون", "کلید", "کلیه", "کمان", "کمدی", "کمری", "کنجد", "کندی", "کنند", "کنهی", "کنگر", "کنید", "کنیم", "کودی", "کوره", "کوزه", "کوسه", "کوشک", "کولر", "کوله", "کومه", "کونگ", "کوهی", "کوچه", "کوکو", "کویت", "کویر", "کپور", "کچلی", "کیدی", "کیسه", "کیفی", "کینه", "کینی", "کیکی", "گازی", "گاوی", "گدای", "گذرد", "گذرم", "گذری", "گذشت", "گربه", "گردد", "گردش", "گردم", "گردن", "گردو", "گردی", "گرمک", "گرمی", "گروه", "گرگی", "گریه", "گریپ", "گشتم", "گشتی", "گفتم", "گفتی", "گلاب", "گلوی", "گلپر", "گلیم", "گمرک", "گندم", "گوجه", "گودی", "گوشت", "گوشی", "گوند", "گونه", "گوهر", "گوید", "گویم", "گیره", "گیوه", "یاسی", "یاقی", "یزدی", "یشمی", "یقهی", "یمنی", "یورو", "یوزی"], "5": ["آبادی", "آبانی", "آبران", "آبرها", "آبروی", "آبریی", "آبشار", "آبلهی", "آبکشی", "آبیان", "آبیها", "آتاقی", "آتشان", "آتشها", "آتفاق", "آجاره", "آجاقی", "آحسنی", "آحضار", "آحمقی", "آختری", "آختهی", "آخراج", "آخوان", "آراست", "آرامش", "آرامی", "آراکی", "آرایش", "آرتقا", "آرثان", "آرثها", "آردان", "آردها", "آردکی", "آرزشی", "آرزنی", "آزادی", "آساسی", "آسانی", "آسایش", "آسبان", "آسبها", "آستاد", "آستخر", "آسفند", "آسمان", "آسکلت", "آسکنر", "آسکیی", "آسیبی", "آشپزی", "آشکار", "آشکان", "آشکها", "آصالت", "آصلان", "آصلها", "آضافه", "آعاده", "آعدام", "آعظمی", "آفتاب", "آفتان", "آفتها", "آفزار", "آفسون", "آفقان", "آفقها", "آقامت", "آلاان", "آلاغی", "آلاها", "آلفتی", "آلماس", "آلمان", "آلنگو", "آلوان", "آلوده", "آلوها", "آلوچه", "آمدند", "آمدید", "آمدیم", "آمشبی", "آملان", "آملها", "آموخت", "آموزد", "آموزش", "آموزم", "آموزی", "آمپول", "آمیدی", "آمینی", "آناری", "آنبار", "آنبری", "آنبهی", "آنجیر", "آنداز", "آندام", "آندوه", "آنسان", "آنگان", "آنگشت", "آنگها", "آنگور", "آنگیز", "آهرمی", "آهنان", "آهنها", "آهنگر", "آهنگی", "آهواز", "آهوان", "آهوها", "آویخت", "آویشن", "آگاهی", "آیثار", "آیران", "آیستی", "آیلام", "آینهی", "آیوان", "ابادی", "ابانی", "ابران", "ابرها", "ابروی", "ابریی", "ابشار", "ابلهی", "ابکشی", "ابیان", "ابیها", "اتاقی", "اتشان", "اتشها", "اتفاق", "اجاره", "اجاقی", "احسنی", "احضار", "احمقی", "اختری", "اختهی", "اخراج", "اخوان", "اراست", "ارامش", "ارامی", "اراکی", "ارایش", "ارتقا", "ارثان", "ارثها", "اردان", "اردها", "اردکی", "ارزشی", "ارزنی", "ازادی", "اساسی", "اسانی", "اسایش", "اسبان", "اسبها", "استاد", "استخر", "اسفند", "اسمان", "اسکلت", "اسکنر", "اسکیی", "اسیبی", "اشپزی", "اشکار", "اشکان", "اشکها", "اصالت", "اصلان", "اصلها", "اضافه", "اعاده", "اعدام", "اعظمی", "افتاب", "افتان", "افتها", "افزار", "افسون", "افقان", "افقها", "اقامت", "الاان", "الاغی", "الاها", "الفتی", "الماس", "المان", "النگو", "الوان", "الوده", "الوها", "الوچه", "امدند", "امدید", "امدیم", "امشبی", "املان", "املها", "اموخت", "اموزد", "اموزش", "اموزم", "اموزی", "امپول", "امیدی", "امینی", "اناری", "انبار", "انبری", "انبهی", "انجیر", "انداز", "اندام", "اندوه", "انسان", "انگان", "انگشت", "انگها", "انگور", "انگیز", "اهرمی", "اهنان", "اهنها", "اهنگر", "اهنگی", "اهواز", "اهوان", "اهوها", "اویخت", "اویشن", "اگاهی", "ایثار", "ایران", "ایستی", "ایلام", "اینهی", "ایوان", "بآیند", "بآیید", "بآییم", "بابلی", "باتری", "باختم", "باختی", "بادام", "بادان", "بادها", "بادیی", "باران", "باربر", "باروی", "باریک", "بازان", "بازرس", "بازند", "بازها", "بازوی", "بازید", "بازیم", "بازیی", "باطری", "باطلی", "باطنی", "باغان", "باغها", "باغچه", "باقلا", "بالای", "بالشی", "بالنی", "بالکن", "بامان", "بامها", "بامیه", "باندی", "بانوی", "بانکی", "باهوش", "باکان", "باکها", "بایری", "بایست", "بایند", "بایید", "باییم", "ببازد", "ببازم", "ببازی", "ببران", "ببرند", "ببرها", "ببرید", "ببریم", "ببندد", "ببندم", "ببندی", "ببیند", "ببینم", "ببینی", "بتازد", "بتازم", "بتازی", "بجهند", "بجهید", "بجهیم", "بحرین", "بخاری", "بخشان", "بخشای", "بخشها", "بخلان", "بخلها", "بخورد", "بخورم", "بخوری", "بخیهی", "بدارد", "بدارم", "بداری", "بداند", "بدانم", "بدانی", "بدنان", "بدنها", "بدهند", "بدهید", "بدهیم", "بدهیی", "بدوزد", "بدوزم", "بدوزی", "بدیعی", "بذران", "بذرها", "براتی", "برادر", "براند", "برانم", "برانی", "برتری", "برجان", "برجها", "بردند", "بردید", "بردیم", "برزخی", "برزنی", "برسند", "برسید", "برسیم", "برفان", "برفها", "برقان", "برقها", "برنای", "برنجی", "برنده", "برهان", "برهها", "بروند", "بروید", "برویم", "برکهی", "برگان", "برگشت", "برگها", "بریزد", "بریزم", "بریزی", "بزدلی", "بزنند", "بزنید", "بزنیم", "بسازد", "بسازم", "بسازی", "بستان", "بستری", "بستند", "بستنی", "بستها", "بستوی", "بستید", "بستیم", "بسوزد", "بسوزم", "بسوزی", "بسیار", "بشقاب", "بشوند", "بشوید", "بشویم", "بشویی", "بشکند", "بشکنم", "بشکنی", "بشکهی", "بصیرت", "بصیری", "بطریی", "بغضان", "بغضها", "بغلان", "بغلها", "بقالی", "بلاان", "بلاها", "بلبلی", "بلندی", "بلوار", "بلوری", "بلوزی", "بلوطی", "بلوغی", "بلیتی", "بماند", "بمانم", "بمانی", "بمبان", "بمبها", "بناان", "بناها", "بندان", "بندری", "بندند", "بندها", "بندید", "بندیم", "بنزین", "بنفشی", "بهاان", "بهاری", "بهاها", "بهرهی", "بهمنی", "بهیار", "بوتان", "بوتها", "بوتهی", "بودجه", "بوسان", "بوسها", "بوسهی", "بوشهر", "بوفهی", "بوکسی", "بویان", "بویها", "بپرند", "بپرید", "بپریم", "بپزند", "بپزید", "بپزیم", "بچهان", "بچهها", "بکارد", "بکارم", "بکاری", "بکشند", "بکشید", "بکشیم", "بکنند", "بکنید", "بکنیم", "بگذرد", "بگذرم", "بگذری", "بگردد", "بگردم", "بگردی", "بگوند", "بگوید", "بگویم", "بیاتی", "بیختم", "بیختی", "بیدان", "بیدها", "بیعان", "بیعها", "بیمار", "بیمهی", "بینان", "بینای", "بینشی", "بینند", "بینها", "بینید", "بینیم", "بینیی", "تابان", "تابشی", "تابلو", "تابهی", "تاجان", "تاجری", "تاجها", "تاختم", "تاختی", "تاران", "تارها", "تاریخ", "تاریک", "تازند", "تازگی", "تازید", "تازیم", "تاسان", "تاسها", "تالاب", "تامین", "تاولی", "تاپان", "تاپها", "تاکسی", "تبران", "تبرها", "تبریز", "تبسمی", "تبلتی", "تجارت", "تجدید", "تجربه", "تحقیق", "تختان", "تختها", "تختهی", "تخریب", "تخمان", "تخمها", "تدوین", "ترازو", "تراشی", "تربچه", "ترجمه", "ترخون", "ترخیص", "ترسان", "ترسها", "ترسوی", "ترشان", "ترشها", "ترشیی", "ترفیع", "ترمهی", "ترمیم", "ترنجی", "ترهان", "ترهها", "تروری", "ترکان", "ترکها", "تریاک", "تریلی", "تزویر", "تستان", "تستها", "تشویق", "تشکان", "تشکها", "تصادف", "تصویب", "تصویر", "تعطیل", "تعظیم", "تعلیم", "تعهدی", "تفتیش", "تفرقه", "تفریح", "تفنگی", "تقاضا", "تقلید", "تقویم", "تلفنی", "تماسی", "تماشا", "تمرین", "تمساح", "تمشکی", "تمنای", "تمیزی", "تناسب", "تنبلی", "تندان", "تندها", "تنهان", "تنهها", "تنوری", "تنگان", "تنگنا", "تنگها", "تنیسی", "تهاجم", "تهران", "تهویه", "توالت", "توتان", "توتها", "توجهی", "تودهی", "توران", "تورها", "توریی", "توشتم", "توشتی", "توفان", "توفیق", "توقیف", "تولدی", "تومان", "تونلی", "توپان", "توپها", "تکنیک", "تگرگی", "تیران", "تیراژ", "تیرها", "تیرهی", "تیشرت", "تیشهی", "تیغان", "تیغها", "تیغیی", "تیهوی", "ثابتی", "ثاقبی", "ثروتی", "ثمران", "ثمرها", "جاجیم", "جادهی", "جادوی", "جاروی", "جاریی", "جامان", "جامعه", "جامها", "جامیی", "جانان", "جانها", "جانور", "جاهلی", "جاوهی", "جایزه", "جدولی", "جذابی", "جراحی", "جرقهی", "جرمان", "جرمها", "جریمه", "جزوهی", "جشنان", "جشنها", "جعبهی", "جعفری", "جغدان", "جغدها", "جفتان", "جفتها", "جلادی", "جلبان", "جلبها", "جلدان", "جلدها", "جلسات", "جلوهی", "جلیقه", "جمجمه", "جمشید", "جمعان", "جمعها", "جمعهی", "جنوبی", "جنگان", "جنگجو", "جنگلی", "جنگها", "جهادی", "جهالت", "جهانی", "جهلان", "جهلها", "جوازی", "جوانه", "جوانی", "جواهر", "جوجهی", "جودوی", "جوراب", "جوزان", "جوزها", "جوشان", "جوشها", "جویان", "جویها", "جگران", "جگرها", "جیبان", "جیبها", "حاجبی", "حادثه", "حاشیه", "حاضری", "حافظه", "حافظی", "حامیی", "حاویی", "حاکمی", "حبابی", "حبسان", "حبسها", "حجابی", "حجامت", "حجرهی", "حجمان", "حجمها", "حدودی", "حراجی", "حرصان", "حرصها", "حرفان", "حرفها", "حسابی", "حسادت", "حسدان", "حسدها", "حسرتی", "حصاری", "حضانت", "حضوری", "حفاظی", "حقوقی", "حقیقت", "حقیقی", "حلزون", "حلقهی", "حماسه", "حمامی", "حمایت", "حملهی", "حناان", "حناها", "حوادث", "حواسی", "حوالی", "حوضان", "حوضها", "حوضهی", "حوضچه", "حکایت", "حکمان", "حکمتی", "حکمها", "حکومت", "حیاتی", "حیاطی", "حیرتی", "حیلهی", "خاتمه", "خاتمی", "خادمی", "خاران", "خارها", "خارکی", "خاستم", "خاستی", "خاطره", "خاطری", "خالصی", "خالهی", "خامان", "خامها", "خامهی", "خاموش", "خانهی", "خاوری", "خاکان", "خاکها", "خبران", "خبرها", "خبریی", "خداان", "خداها", "خربزه", "خرداد", "خردان", "خردها", "خرسان", "خرسها", "خرمان", "خرمای", "خرمها", "خروسی", "خرچنگ", "خرگوش", "خریدی", "خزانی", "خسارت", "خستگی", "خسروی", "خسیسی", "خشابی", "خشتان", "خشتها", "خشخاش", "خشمان", "خشمها", "خشنود", "خشکهی", "خصومت", "خطاان", "خطاها", "خلبان", "خلقان", "خلقها", "خلیجی", "خمیده", "خندهی", "خوابی", "خواست", "خواند", "خوانم", "خوانی", "خواهد", "خواهر", "خواهم", "خواهی", "خوبان", "خوبها", "خودرو", "خوردم", "خورده", "خوردی", "خورند", "خورید", "خوریم", "خوریی", "خوشبو", "خوشرو", "خونان", "خونها", "خوکان", "خوکها", "خیاری", "خیاطی", "خیالی", "خیامی", "خیانت", "دادند", "دادید", "دادیم", "داران", "دارتی", "دارند", "دارها", "داروی", "دارید", "داریم", "داریی", "داشتم", "داشتی", "داغان", "داغها", "دامان", "دامنه", "دامنی", "دامها", "دانست", "دانشی", "دانند", "دانهی", "دانید", "دانیم", "داوری", "داییی", "دختری", "دراجی", "درامد", "درایت", "درختی", "دردان", "دردها", "درستی", "درمان", "درهان", "درهها", "دروغی", "درویش", "درگاه", "دریای", "دستان", "دستها", "دستور", "دستکش", "دستیی", "دشتان", "دشتها", "دشمنی", "دشوار", "دغلان", "دغلها", "دفاعی", "دفتری", "دقایق", "دلاری", "دلاور", "دلبند", "دلربا", "دلفین", "دلمهی", "دلگرم", "دلیری", "دماغی", "دندان", "دنیوی", "دهانی", "دهقان", "دهکده", "دوانی", "دوختم", "دوختی", "دودکش", "دوران", "دوزند", "دوزید", "دوزیم", "دوستی", "دوشاب", "دوشان", "دوشها", "دوغان", "دوغها", "دویان", "دویها", "دکتری", "دکلان", "دکلها", "دکمهی", "دیدار", "دیدند", "دیدید", "دیدیم", "دیروز", "دیزیی", "دیسان", "دیسها", "دیسکی", "دینان", "دینها", "دیهان", "دیهها", "دیوار", "دیوان", "دیوها", "دیگان", "دیگها", "دیگچه", "ذخیره", "ذرتان", "ذرتها", "ذرهان", "ذرهها", "ذهنان", "ذهنها", "رابطه", "رادیو", "رازان", "رازقی", "رازها", "راستی", "راندم", "رانده", "راندی", "رانند", "رانید", "رانیم", "رانیی", "راهان", "راهرو", "راهها", "راهور", "راکون", "رایان", "رایها", "ربوده", "رتیلی", "رزمان", "رزمها", "رسالت", "رسانه", "رستمی", "رسیدی", "رشتان", "رشتها", "رشتهی", "رضایت", "رطبان", "رطبها", "رعدان", "رعدها", "رعنای", "رفاقت", "رفتار", "رفتند", "رفتید", "رفتیم", "رقصان", "رقصها", "رنجان", "رنجها", "رندهی", "رنگان", "رنگها", "رنگین", "رهنان", "رهنها", "روانی", "روباه", "رودان", "رودها", "روزان", "روزها", "روزهی", "روزین", "روستا", "روسری", "روسیه", "روشان", "روشنی", "روشها", "روغنی", "رولتی", "روگذر", "رویان", "رویها", "ریاان", "ریالی", "ریاها", "ریحان", "ریختم", "ریختی", "ریزند", "ریزید", "ریزیم", "ریشان", "ریشها", "ریشهی", "ریواس", "ریگان", "ریگها", "زاریی", "زاغان", "زاغها", "زانوی", "زاگرس", "زبانی", "زخمان", "زخمها", "زرافه", "زردان", "زردها", "زرشکی", "زرگری", "زشتان", "زشتها", "زغالی", "زلزله", "زلفان", "زلفها", "زمینه", "زمینی", "زنبور", "زنبیل", "زنجان", "زندان", "زندها", "زنگان", "زنگها", "زهران", "زهرها", "زودپز", "زونکن", "زکاتی", "زیارت", "زیانی", "زیبای", "زیتون", "زیران", "زیرها", "زیرهی", "زیرکی", "زیستم", "زیستی", "زیلوی", "زیپان", "زیپها", "ساحلی", "ساختم", "ساختی", "ساریی", "سازان", "سازشی", "سازند", "سازها", "سازید", "سازیم", "ساسان", "ساسها", "ساطور", "ساعتی", "ساقان", "ساقها", "سالاد", "سالار", "سالان", "سالنی", "سالها", "سایهی", "سبدان", "سبدها", "سبزان", "سبزها", "سبزیی", "ستاره", "ستایش", "ستمگر", "ستونی", "سحران", "سحرها", "سخاوت", "سراان", "سراها", "سرباز", "سرخان", "سرخها", "سرداب", "سردار", "سرسرا", "سرشار", "سرشتم", "سرشتی", "سرشیر", "سرعتی", "سرفهی", "سرمان", "سرمای", "سرمها", "سروان", "سروری", "سروها", "سرکهی", "سطلان", "سطلها", "سعدیی", "سفارت", "سفارش", "سفتهی", "سفران", "سفرها", "سفرهی", "سفیدی", "سفیهی", "سقفان", "سقفها", "سلاحی", "سلامی", "سلولی", "سماقی", "سمتان", "سمتها", "سمنان", "سمندر", "سمنوی", "سنتان", "سنتها", "سنجاب", "سنجاق", "سنجان", "سنجها", "سنندج", "سنوات", "سنگان", "سنگری", "سنگها", "سهراب", "سواری", "سوختم", "سوختی", "سودان", "سودها", "سورهی", "سوریه", "سوزند", "سوزنی", "سوزید", "سوزیم", "سوسنی", "سوسکی", "سوغات", "سوهان", "سوپان", "سوپها", "سوگان", "سوگها", "سویای", "سپاهی", "سپران", "سپرده", "سپرها", "سپهبد", "سپیدی", "سکهان", "سکهها", "سیاره", "سیاست", "سیاهی", "سیاوش", "سیبان", "سیبها", "سیبکی", "سیران", "سیرها", "سیلان", "سیلها", "سیمان", "سیمرغ", "سیمها", "سینما", "سینهی", "سیکلت", "سیگار", "شاخان", "شاخها", "شاخهی", "شاداب", "شادان", "شادها", "شادیی", "شارژر", "شاعری", "شالان", "شالها", "شامان", "شاملو", "شامها", "شامیی", "شانهی", "شاهان", "شاهدی", "شاهها", "شاهین", "شاکیی", "شایان", "شایست", "شبنمی", "شبکهی", "شتران", "شترها", "شجاعت", "شجاعی", "شخصیی", "شرابی", "شرافت", "شربتی", "شرعان", "شرعها", "شریفی", "شستند", "شستید", "شستیم", "شطرنج", "شعران", "شعرها", "شغالی", "شفقان", "شفقها", "شلغمی", "شلوار", "شلیلی", "شمشاد", "شمعان", "شمعها", "شناان", "شناخت", "شناسد", "شناسم", "شناسی", "شناها", "شنبهی", "شنوای", "شهابی", "شهادت", "شهامت", "شهریی", "شوران", "شورای", "شورها", "شوفاژ", "شوقان", "شوقها", "شومان", "شومها", "شوهری", "شویدی", "شویند", "شویید", "شوییم", "شپشان", "شپشها", "شکاری", "شکایت", "شکران", "شکرها", "شکستم", "شکستی", "شکلات", "شکلان", "شکلها", "شکمان", "شکمها", "شکنند", "شکنید", "شکنیم", "شکوفا", "شکوفه", "شیراز", "شیران", "شیرجه", "شیرها", "شیرهی", "شیرین", "شیشهی", "شیونی", "شیپور", "صاحبی", "صادقی", "صاعقه", "صبحان", "صبحها", "صبران", "صبرها", "صحرای", "صخرهی", "صداقت", "صدفان", "صدفها", "صدمان", "صدمها", "صرافی", "صلحان", "صلحها", "صندلی", "صوتان", "صوتها", "صورتی", "صیادی", "ضبطان", "ضبطها", "ضلالت", "طاسان", "طاسها", "طاقان", "طاقها", "طالبی", "طبقات", "طبلان", "طبلها", "طبیعت", "طراحی", "طراوت", "طرحان", "طرحها", "طرفان", "طرفها", "طعمان", "طعمها", "طفلان", "طفلها", "طلاان", "طلاقی", "طلاها", "طلایی", "طلبان", "طلبها", "طمعان", "طمعها", "طنابی", "طنزان", "طنزها", "طوطیی", "طوفان", "طولان", "طولها", "ظالمی", "ظرفان", "ظرفها", "ظلمان", "ظلمها", "ظهران", "ظهرها", "عابری", "عادلی", "عاشقی", "عاقبت", "عاقلی", "عالیی", "عبادت", "عدالت", "عداوت", "عدسان", "عدسها", "عراقی", "عرفان", "عرفها", "عروسک", "عروسی", "عسلان", "عسلها", "عشقان", "عشقها", "عصاان", "عصاها", "عصبان", "عصبها", "عصران", "عصرها", "عضوان", "عضوها", "عطاری", "عقابی", "عقدان", "عقدها", "عقربی", "عقلان", "عقلها", "علفان", "علفها", "علمان", "علمها", "عمارت", "عمانی", "عمقان", "عمقها", "عملان", "عملها", "عمهان", "عمهها", "عموان", "عموها", "عنابی", "عوارض", "عکاسی", "عکسان", "عکسها", "عیدان", "عیدها", "عیدیی", "عینکی", "غاران", "غارها", "غازان", "غازها", "غذاان", "غذاها", "غربان", "غربها", "غرقان", "غرقها", "غروبی", "غریقی", "غزلان", "غزلها", "غصهان", "غصهها", "غفلتی", "غمناک", "غواصی", "غولان", "غولها", "فاسقی", "فالان", "فالها", "فتحان", "فتحها", "فراری", "فراست", "فرجام", "فردای", "فرزند", "فرشان", "فرشها", "فرنگی", "فرهنگ", "فروتی", "فروخت", "فروشد", "فروشم", "فروشی", "فروغی", "فریاد", "فریبی", "فریزر", "فسخان", "فسخها", "فصلان", "فصلها", "فضاان", "فضاها", "فعلان", "فعلها", "فغانی", "فلزان", "فلزها", "فلشان", "فلشها", "فلفلی", "فلوسی", "فلکان", "فلکها", "فنجان", "فندقی", "فندکی", "فنچان", "فنچها", "فهمان", "فهمها", "فوتان", "فوتها", "فوجان", "فوجها", "فولاد", "فکران", "فکرها", "فیلان", "فیلها", "قابان", "قابها", "قاتوق", "قارچی", "قاسمی", "قاشقی", "قاصدک", "قاصدی", "قاضیی", "قاطری", "قانون", "قایقی", "قتلان", "قتلها", "قدحان", "قدحها", "قدران", "قدرتی", "قدرها", "قدمان", "قدمها", "قدومه", "قرآنی", "قراری", "قرانی", "قرصان", "قرصها", "قرضان", "قرضها", "قرقیی", "قرمزی", "قرنان", "قرنها", "قزلان", "قزلها", "قزوین", "قسمان", "قسمها", "قشنگی", "قصاصی", "قصران", "قصرها", "قصیده", "قطابی", "قطاری", "قطبان", "قطبها", "قطران", "قطرها", "قطرهی", "قفلان", "قفلها", "قلبان", "قلبها", "قلعهی", "قلمان", "قلمها", "قلهان", "قلهها", "قلیهی", "قناری", "قندان", "قندها", "قهوهی", "قورمه", "قوریی", "قوطیی", "قومان", "قومها", "قویان", "قویها", "قیمهی", "قیچیی", "لاکان", "لاکها", "لایحه", "لباسی", "لبخند", "لبنان", "لحافی", "لحنان", "لحنها", "لذتان", "لذتها", "لرزان", "لرزها", "لطفان", "لطفها", "لعلان", "لعلها", "لغتان", "لغتها", "لنجان", "لنجها", "لنچان", "لنچها", "لوبیا", "لوحان", "لوحها", "لودوی", "لوزان", "لوزها", "لولهی", "لپهان", "لپهها", "لکنتی", "لیموی", "لیوان", "ماتان", "ماتمی", "ماتها", "مادری", "ماران", "مارها", "ماستی", "ماسهی", "ماشان", "ماشها", "ماشین", "مامای", "مانتو", "ماندم", "ماندی", "مانند", "مانید", "مانیم", "ماهان", "ماهها", "ماهیی", "ماژیک", "مایعی", "مایوس", "مبلان", "مبلها", "متروی", "متهمی", "مجرمی", "مجریی", "محزون", "محنتی", "مخلوط", "مدادی", "مدرسه", "مدرسی", "مدیری", "مرجان", "مرخصی", "مرداب", "مرداد", "مردان", "مردمی", "مردها", "مرزان", "مرزها", "مرزهی", "مرغان", "مرغها", "مرگان", "مرگها", "مریضی", "مزایا", "مزهان", "مزهها", "مسافر", "مسرتی", "مسکنی", "مسگری", "مشتان", "مشتها", "مشعلی", "مشهدی", "مشکیی", "مصران", "مصرها", "مطبان", "مطبها", "معاون", "معدهی", "معرفت", "معلمی", "معمار", "مغزان", "مغزها", "مفتان", "مفتها", "مقنعه", "ملافه", "ملاقه", "ملخان", "ملخها", "ملوان", "ملکان", "ملکها", "ملکهی", "منحوس", "منزلی", "منشیی", "منچان", "منچها", "منگنه", "مهتاب", "مهران", "مهرها", "مهریه", "مهمان", "مهمها", "مهندس", "موتور", "موجان", "موجها", "مودمی", "مورچه", "موزان", "موزها", "موزهی", "موسان", "موسها", "موشان", "موشها", "موشکی", "موفقی", "مومنی", "موکتی", "موکلی", "مویزی", "مچیان", "مچیها", "مژهان", "مژهها", "مکران", "مکرها", "مکروه", "مگسان", "مگسها", "میآید", "میآیم", "میآیی", "میاید", "میایم", "میایی", "میبرد", "میبرم", "میبری", "میجهد", "میجهم", "میجهی", "میخکی", "میدان", "میدهد", "میدهم", "میدهی", "میرزا", "میرسد", "میرسم", "میرسی", "میرود", "میروم", "میروی", "میزان", "میزند", "میزنم", "میزنی", "میزها", "میشان", "میشها", "میشود", "میشوم", "میشوی", "میمون", "مینای", "مینیی", "میوهی", "میپرد", "میپرم", "میپری", "میپزد", "میپزم", "میپزی", "میکشد", "میکشم", "میکشی", "میکند", "میکنم", "میکنی", "میگود", "میگوم", "میگوی", "نآیند", "نآیید", "نآییم", "ناخدا", "ناخنی", "نادان", "نارنج", "نالهی", "نامهی", "نانان", "نانها", "ناوان", "ناوها", "ناکام", "نایند", "نایید", "ناییم", "نباتی", "نبازد", "نبازم", "نبازی", "نبرند", "نبرید", "نبریم", "نبندد", "نبندم", "نبندی", "نبوغی", "نبیند", "نبینم", "نبینی", "نتازد", "نتازم", "نتازی", "نجاتی", "نجاری", "نجهند", "نجهید", "نجهیم", "نخلان", "نخلها", "نخودی", "نخورد", "نخورم", "نخوری", "ندارد", "ندارم", "نداری", "نداند", "ندانم", "ندانی", "ندهند", "ندهید", "ندهیم", "ندوزد", "ندوزم", "ندوزی", "نراند", "نرانم", "نرانی", "نردان", "نردها", "نردهی", "نرسند", "نرسید", "نرسیم", "نرمان", "نرمها", "نروند", "نروید", "نرویم", "نرگسی", "نریزد", "نریزم", "نریزی", "نزنند", "نزنید", "نزنیم", "نسازد", "نسازم", "نسازی", "نسوزد", "نسوزم", "نسوزی", "نسیمی", "نشاطی", "نشانی", "نشوند", "نشوید", "نشویم", "نشویی", "نشکند", "نشکنم", "نشکنی", "نشیمن", "نظامی", "نظریی", "نعناع", "نفتان", "نفتها", "نفرتی", "نفقهی", "نقابی", "نقاشی", "نقاله", "نقرهی", "نقشهی", "نقطهی", "نمازی", "نماند", "نمانم", "نمانی", "نمدان", "نمدها", "نمکان", "نمکها", "نهنگی", "نواخت", "نواری", "نوازد", "نوازم", "نوازی", "نوران", "نوردی", "نورها", "نوروز", "نوشتم", "نوشتی", "نومید", "نوهان", "نوهها", "نویسد", "نویسم", "نویسی", "نپرند", "نپرید", "نپریم", "نپزند", "نپزید", "نپزیم", "نکاحی", "نکارد", "نکارم", "نکاری", "نکشند", "نکشید", "نکشیم", "نکنند", "نکنید", "نکنیم", "نگاهی", "نگذرد", "نگذرم", "نگذری", "نگردد", "نگردم", "نگردی", "نگوند", "نگوید", "نگویم", "نیزهی", "نیشان", "نیشها", "نیلیی", "نیمای", "نیکوی", "هاکیی", "هبهان", "هبهها", "هدایت", "هدفان", "هدفها", "هدفون", "هدهدی", "هدیهی", "هزاری", "هزینه", "هشتان", "هشتند", "هشتها", "هشتید", "هشتیم", "هلهله", "هلوان", "هلوها", "همدان", "همدلی", "همراه", "همسری", "هندان", "هندها", "هندیی", "هواان", "هواها", "هودیی", "هوشان", "هوشها", "هویجی", "هیجان", "والان", "والها", "وامان", "وامها", "وانتی", "وانیل", "وبکمی", "وثیقه", "وجدان", "وجدها", "وزغان", "وزغها", "وزنهی", "وصیتی", "ووشوی", "وکالت", "وکیلی", "ویلچر", "پاتکی", "پاداش", "پاروی", "پارچه", "پارچی", "پازلی", "پاسخی", "پاسور", "پاشنه", "پالتو", "پاکان", "پاکها", "پایان", "پایشی", "پایها", "پایهی", "پاییز", "پتوان", "پتوها", "پختند", "پختید", "پختیم", "پدالی", "پدرام", "پدران", "پدرها", "پدیدی", "پذیرش", "پذیری", "پرتاب", "پردهی", "پرستو", "پرستی", "پرشان", "پرشها", "پرواز", "پرورش", "پروژه", "پروین", "پرچان", "پرچمی", "پرچها", "پرگار", "پزشکی", "پستان", "پستهی", "پستوی", "پشتان", "پشتها", "پشتیی", "پشمان", "پشمها", "پشمکی", "پشهان", "پشهها", "پلاکی", "پلنگی", "پلهان", "پلهها", "پلوان", "پلوها", "پلیدی", "پلیسی", "پلیور", "پمادی", "پمپان", "پمپها", "پناهی", "پنبهی", "پنجان", "پنجره", "پنجها", "پنکهی", "پنیری", "پهلوی", "پهنان", "پهنها", "پوتین", "پودری", "پوزان", "پوزها", "پوستی", "پوششی", "پوشهی", "پولان", "پولها", "پولکی", "پوپکی", "پوکان", "پوکها", "پویای", "پژوهش", "پیاده", "پیازی", "پیاله", "پیامی", "پیروز", "پیشان", "پیشرو", "پیشها", "پیوند", "پیپان", "پیپها", "پیچان", "پیچها", "پیچکی", "پیکان", "پیکره", "پیکری", "پیکها", "چابکی", "چادری", "چارهی", "چاشنی", "چاقان", "چاقها", "چاقوی", "چالشی", "چانهی", "چاهان", "چاهها", "چاپان", "چاپها", "چاپگر", "چاکری", "چایان", "چایها", "چتران", "چترها", "چراغی", "چرخان", "چرخها", "چروکی", "چرکین", "چسبان", "چسبها", "چشمان", "چشمها", "چشمهی", "چغندر", "چفتان", "چفتها", "چلوان", "چلوها", "چلچله", "چمدان", "چمنان", "چمنها", "چنجهی", "چنگال", "چنگان", "چنگها", "چهرهی", "چوبان", "چوبها", "چوبکی", "چوپان", "چکاوک", "چکشان", "چکشها", "چکمهی", "چیتیی", "چیلری", "چینان", "چینها", "ژاپنی", "کاخان", "کاخها", "کاران", "کارتی", "کاردی", "کارند", "کارها", "کارگر", "کارید", "کاریم", "کاسهی", "کاشان", "کاشتم", "کاشتی", "کاشها", "کاشیی", "کاغذی", "کافری", "کانوی", "کاهوی", "کاپشن", "کایاک", "کبابی", "کبدان", "کبدها", "کبوتر", "کبکان", "کبکها", "کتابی", "کتانی", "کتریی", "کتلتی", "کثیفی", "کدوان", "کدوها", "کرامت", "کرجان", "کرجها", "کردند", "کردید", "کردیم", "کرفسی", "کرمان", "کرمها", "کرهان", "کرهها", "کرکره", "کرکسی", "کرگدن", "کسبان", "کسبها", "کشتان", "کشتند", "کشتها", "کشتید", "کشتیم", "کشتیی", "کشمشی", "کشوان", "کشوها", "کشکان", "کشکها", "کفاشی", "کفالت", "کفتار", "کفشان", "کفشها", "کفنان", "کفنها", "کفگیر", "کلاغی", "کلامی", "کلاهی", "کلبهی", "کلمات", "کلمان", "کلمها", "کلونی", "کلوچه", "کلیدی", "کلیهی", "کمانی", "کمدان", "کمدها", "کمران", "کمرها", "کنجدی", "کندان", "کندها", "کنهان", "کنهها", "کنگری", "کودان", "کودها", "کورهی", "کوروش", "کوزهی", "کوسهی", "کوشکی", "کوفته", "کولری", "کولهی", "کومهی", "کونگی", "کوهان", "کوهها", "کوچهی", "کوکوی", "کویتی", "کویری", "کپسول", "کپوری", "کچلان", "کچلها", "کیاست", "کیدان", "کیدها", "کیسهی", "کیفان", "کیفها", "کینان", "کینها", "کینهی", "کیکان", "کیکها", "گازان", "گازها", "گازیی", "گاوان", "گاوها", "گداان", "گداخت", "گداها", "گذاشت", "گذران", "گذرند", "گذرها", "گذرید", "گذریم", "گذشتم", "گذشتی", "گربهی", "گرداب", "گردان", "گردشی", "گردند", "گردنی", "گردها", "گردون", "گردوی", "گردید", "گردیم", "گرمان", "گرمها", "گرمکی", "گروهی", "گرگان", "گرگها", "گریخت", "گریهی", "گریپی", "گشتند", "گشتید", "گشتیم", "گشنیز", "گفتند", "گفتید", "گفتیم", "گلابی", "گلایل", "گلدان", "گلنار", "گلوان", "گلوها", "گلپری", "گلیمی", "گمرکی", "گنجشک", "گندمی", "گوجهی", "گودان", "گودها", "گورخر", "گوریل", "گوشان", "گوشتی", "گوشها", "گوشیی", "گونهی", "گونیا", "گوهری", "گیرهی", "گیلاس", "گیوهی", "یاسان", "یاسمن", "یاسها", "یاسوج", "یاقان", "یاقها", "یاقوت", "یخچال", "یزدان", "یزدها", "یشمیی", "یقهان", "یقهها", "یمنان", "یمنها", "یوروی", "یوزان", "یوزها"], "6": ["آبادان", "آبادها", "آبانان", "آبانها", "آبرتان", "آبرشان", "آبرمان", "آبروان", "آبروها", "آبریان", "آبریها", "آبشاری", "آبغوره", "آبلهان", "آبلهها", "آبلیمو", "آبکشان", "آبکشها", "آبگوشت", "آبیاری", "آبیتان", "آبیشان", "آبیمان", "آتاقان", "آتاقها", "آتشتان", "آتششان", "آتشمان", "آتفاقی", "آتوبوس", "آجارهی", "آجاقان", "آجاقها", "آحسنان", "آحسنها", "آحضاری", "آحمقان", "آحمقها", "آختران", "آخترها", "آختهان", "آختهها", "آخراجی", "آخوانی", "آراستم", "آراستی", "آرامان", "آرامشی", "آرامها", "آراکان", "آراکها", "آرایشی", "آرتفاع", "آرتقای", "آرثتان", "آرثشان", "آرثمان", "آردتان", "آردشان", "آردمان", "آردکان", "آردکها", "آرزشان", "آرزشها", "آرزنان", "آرزنها", "آرومیه", "آزادان", "آزادها", "آساسان", "آساسها", "آسانان", "آسانها", "آسایشی", "آسبتان", "آسبشان", "آسبمان", "آستادی", "آستخری", "آستکان", "آسطوره", "آسفرزه", "آسفناج", "آسفندی", "آسمانی", "آسکلتی", "آسکناس", "آسکندر", "آسکنری", "آسکواش", "آسکوتر", "آسکیان", "آسکیها", "آسیبان", "آسیبها", "آشنایی", "آشپزیی", "آشکاری", "آشکتان", "آشکشان", "آشکمان", "آصالتی", "آصفهان", "آصلتان", "آصلشان", "آصلمان", "آضافهی", "آعادهی", "آعدامی", "آعظمان", "آعظمها", "آفتابی", "آفتتان", "آفتشان", "آفتمان", "آفروخت", "آفزاری", "آفسونی", "آفقتان", "آفقشان", "آفقمان", "آقامتی", "آلاتان", "آلاشان", "آلاغان", "آلاغها", "آلامان", "آلبالو", "آلحسنه", "آلفتان", "آلفتها", "آلماسی", "آلمانی", "آلنگوی", "آلوتان", "آلودهی", "آلوشان", "آلومان", "آلوچهی", "آمشبان", "آمشبها", "آملتان", "آملشان", "آملمان", "آموختم", "آموختی", "آموزشی", "آموزند", "آموزید", "آموزیم", "آمپولی", "آمیدان", "آمیدها", "آمینان", "آمینها", "آناران", "آنارها", "آناناس", "آنباری", "آنبران", "آنبرها", "آنبهان", "آنبهها", "آنتقال", "آنجیری", "آنداخت", "آندازد", "آندازم", "آندازی", "آندامی", "آندوهی", "آنسانی", "آنفجار", "آنگاشت", "آنگتان", "آنگشان", "آنگشتر", "آنگشتی", "آنگمان", "آنگوری", "آنگیخت", "آنگیزی", "آهرمان", "آهرمها", "آهنتان", "آهنشان", "آهنمان", "آهنگان", "آهنگری", "آهنگها", "آهوازی", "آهوتان", "آهوشان", "آهومان", "آویختم", "آویختی", "آویشنی", "آپارات", "آگاهان", "آگاهها", "آگاهیی", "آیثاری", "آیرانی", "آیستان", "آیستها", "آیلامی", "آینهان", "آینهها", "آیوانی", "ابادان", "ابادها", "ابانان", "ابانها", "ابرتان", "ابرشان", "ابرمان", "ابروان", "ابروها", "ابریان", "ابریها", "ابشاری", "ابغوره", "ابلهان", "ابلهها", "ابلیمو", "ابکشان", "ابکشها", "ابگوشت", "ابیاری", "ابیتان", "ابیشان", "ابیمان", "اتاقان", "اتاقها", "اتشتان", "اتششان", "اتشمان", "اتفاقی", "اتوبوس", "اجارهی", "اجاقان", "اجاقها", "احسنان", "احسنها", "احضاری", "احمقان", "احمقها", "اختران", "اخترها", "اختهان", "اختهها", "اخراجی", "اخوانی", "اراستم", "اراستی", "ارامان", "ارامشی", "ارامها", "اراکان", "اراکها", "ارایشی", "ارتفاع", "ارتقای", "ارثتان", "ارثشان", "ارثمان", "اردتان", "اردشان", "اردمان", "اردکان", "اردکها", "ارزشان", "ارزشها", "ارزنان", "ارزنها", "ارومیه", "ازادان", "ازادها", "اساسان", "اساسها", "اسانان", "اسانها", "اسایشی", "اسبتان", "اسبشان", "اسبمان", "استادی", "استخری", "استکان", "اسطوره", "اسفرزه", "اسفناج", "اسفندی", "اسمانی", "اسکلتی", "اسکناس", "اسکندر", "اسکنری", "اسکواش", "اسکوتر", "اسکیان", "اسکیها", "اسیبان", "اسیبها", "اشنایی", "اشپزیی", "اشکاری", "اشکتان", "اشکشان", "اشکمان", "اصالتی", "اصفهان", "اصلتان", "اصلشان", "اصلمان", "اضافهی", "اعادهی", "اعدامی", "اعظمان", "اعظمها", "افتابی", "افتتان", "افتشان", "افتمان", "افروخت", "افزاری", "افسونی", "افقتان", "افقشان", "افقمان", "اقامتی", "الاتان", "الاشان", "الاغان", "الاغها", "الامان", "البالو", "الحسنه", "الفتان", "الفتها", "الماسی", "المانی", "النگوی", "الوتان", "الودهی", "الوشان", "الومان", "الوچهی", "امشبان", "امشبها", "املتان", "املشان", "املمان", "اموختم", "اموختی", "اموزشی", "اموزند", "اموزید", "اموزیم", "امپولی", "امیدان", "امیدها", "امینان", "امینها", "اناران", "انارها", "اناناس", "انباری", "انبران", "انبرها", "انبهان", "انبهها", "انتقال", "انجیری", "انداخت", "اندازد", "اندازم", "اندازی", "اندامی", "اندوهی", "انسانی", "انفجار", "انگاشت", "انگتان", "انگشان", "انگشتر", "انگشتی", "انگمان", "انگوری", "انگیخت", "انگیزی", "اهرمان", "اهرمها", "اهنتان", "اهنشان", "اهنمان", "اهنگان", "اهنگری", "اهنگها", "اهوازی", "اهوتان", "اهوشان", "اهومان", "اویختم", "اویختی", "اویشنی", "اپارات", "اگاهان", "اگاهها", "اگاهیی", "ایثاری", "ایرانی", "ایستان", "ایستها", "ایلامی", "اینهان", "اینهها", "ایوانی", "بآموزد", "بآموزم", "بآموزی", "بابلان", "بابلها", "باتریی", "باختند", "باختید", "باختیم", "بادامی", "بادبان", "بادتان", "بادشان", "بادمان", "بادیان", "بادیها", "بارانی", "باربری", "باروان", "باروها", "باریکی", "بازتان", "بازرسی", "بازشان", "بازمان", "بازوان", "بازوها", "بازیان", "بازیها", "بازیگر", "باشکوه", "باطریی", "باطلان", "باطلها", "باطنان", "باطنها", "باغتان", "باغدار", "باغشان", "باغمان", "باغچهی", "بافنده", "باقالی", "باقلای", "باقلوا", "بالاان", "بالاها", "بالشان", "بالشها", "بالنان", "بالنها", "بالکنی", "بالگرد", "بامتان", "بامشان", "باممان", "باموزد", "باموزم", "باموزی", "بامیهی", "باندان", "باندها", "بانوان", "بانوها", "بانکان", "بانکها", "بانکیی", "باهوشی", "باکتان", "باکتری", "باکشان", "باکمان", "بایران", "بایرها", "بایستم", "بایستی", "ببازند", "ببازید", "ببازیم", "ببرتان", "ببرشان", "ببرمان", "ببندند", "ببندید", "ببندیم", "ببینند", "ببینید", "ببینیم", "بتازند", "بتازید", "بتازیم", "بجنورد", "بحرینی", "بخاریی", "بخشاان", "بخشاها", "بخشایش", "بخشتان", "بخششان", "بخشمان", "بخلتان", "بخلشان", "بخلمان", "بخواند", "بخوانم", "بخوانی", "بخواهد", "بخواهم", "بخواهی", "بخورند", "بخورید", "بخوریم", "بخیهان", "بخیهها", "بدارند", "بدارید", "بداریم", "بدانند", "بدانید", "بدانیم", "بدنتان", "بدنشان", "بدنمان", "بدهیان", "بدهیها", "بدوزند", "بدوزید", "بدوزیم", "بدیعان", "بدیعها", "بذرتان", "بذرشان", "بذرمان", "براتان", "براتها", "برادری", "برانند", "برانید", "برانیم", "برتران", "برترها", "برجتان", "برجشان", "برجمان", "برخاست", "برداری", "برداشت", "برزخان", "برزخها", "برزنان", "برزنها", "برفتان", "برفشان", "برفمان", "برقتان", "برقشان", "برقمان", "برناان", "برناها", "برنجان", "برنجها", "برندهی", "برهتان", "برهشان", "برهمان", "بروکلی", "برکهان", "برکهها", "برگتان", "برگشان", "برگشتم", "برگشتی", "برگمان", "بریزند", "بریزید", "بریزیم", "بزدلان", "بزدلها", "بسازند", "بسازید", "بسازیم", "بستتان", "بستران", "بسترها", "بستریی", "بستشان", "بستمان", "بستنیی", "بستوان", "بستوها", "بستگان", "بسوزند", "بسوزید", "بسوزیم", "بسیاری", "بشقابی", "بشناسد", "بشناسم", "بشناسی", "بشویند", "بشویید", "بشوییم", "بشکنند", "بشکنید", "بشکنیم", "بشکهان", "بشکهها", "بصیران", "بصیرتی", "بصیرها", "بطریان", "بطریها", "بغضتان", "بغضشان", "بغضمان", "بغلتان", "بغلشان", "بغلمان", "بفروشد", "بفروشم", "بفروشی", "بقالان", "بقالها", "بقالیی", "بلاتان", "بلاشان", "بلامان", "بلبلان", "بلبلها", "بلندگو", "بلندیی", "بلواری", "بلوران", "بلورها", "بلوزان", "بلوزها", "بلوطان", "بلوطها", "بلوغان", "بلوغها", "بلیتان", "بلیتها", "بمانند", "بمانید", "بمانیم", "بمبتان", "بمبشان", "بمبمان", "بناتان", "بناشان", "بنامان", "بندتان", "بندران", "بندرها", "بندشان", "بندمان", "بنزینی", "بنفشان", "بنفشها", "بنوازد", "بنوازم", "بنوازی", "بنویسد", "بنویسم", "بنویسی", "بهاتان", "بهاران", "بهارها", "بهاشان", "بهامان", "بهداشت", "بهرهان", "بهرهها", "بهمنان", "بهمنها", "بهیاری", "بوتتان", "بوتشان", "بوتمان", "بوتهان", "بوتهها", "بودجهی", "بوستان", "بوسشان", "بوسمان", "بوسهان", "بوسهها", "بوشهری", "بوفهان", "بوفهها", "بولینگ", "بوکسان", "بوکسها", "بویتان", "بویشان", "بویمان", "بچهتان", "بچهشان", "بچهمان", "بکارند", "بکارید", "بکاریم", "بگذرند", "بگذرید", "بگذریم", "بگردند", "بگردید", "بگردیم", "بیابان", "بیاتان", "بیاتها", "بیختند", "بیختید", "بیختیم", "بیدتان", "بیدشان", "بیدمان", "بیرجند", "بیسبال", "بیعتان", "بیعشان", "بیعمان", "بیماری", "بیمهان", "بیمهها", "بیناان", "بیناها", "بینتان", "بینشان", "بینشها", "بینمان", "بینیان", "بینیها", "تابانی", "تابشان", "تابشها", "تابلوی", "تابهان", "تابهها", "تاجتان", "تاجران", "تاجرها", "تاجشان", "تاجمان", "تاختند", "تاختید", "تاختیم", "تارتان", "تارشان", "تارمان", "تاریخی", "تاریکی", "تازگیی", "تاستان", "تاسشان", "تاسمان", "تالابی", "تامینی", "تاولان", "تاولها", "تاپتان", "تاپشان", "تاپمان", "تاکسیی", "تبرتان", "تبرشان", "تبرمان", "تبریزی", "تبسمان", "تبسمها", "تبلتان", "تبلتها", "تجارتی", "تجدیدی", "تجربهی", "تحقیقی", "تختتان", "تختشان", "تختمان", "تختهان", "تختهها", "تخریبی", "تخمتان", "تخمشان", "تخممان", "تدوینی", "ترازوی", "تراشان", "تراشها", "تراموا", "تربچهی", "ترجمهی", "ترخونی", "ترخیصی", "تردستی", "ترستان", "ترسشان", "ترسمان", "ترسوان", "ترسوها", "ترشتان", "ترششان", "ترشمان", "ترشیان", "ترشیها", "ترفیعی", "ترمهان", "ترمهها", "ترمیمی", "ترنجان", "ترنجها", "ترهتان", "ترهشان", "ترهمان", "تروران", "ترورها", "ترکتان", "ترکشان", "ترکمان", "تریاکی", "تریلیی", "تزویری", "تستتان", "تستشان", "تستمان", "تشویقی", "تشکتان", "تشکشان", "تشکمان", "تصادفی", "تصویبی", "تصویری", "تعطیلی", "تعظیمی", "تعلیمی", "تعهدان", "تعهدها", "تفتیشی", "تفرقهی", "تفریحی", "تفنگان", "تفنگها", "تقاضای", "تقلیدی", "تقویمی", "تلفنان", "تلفنها", "تماسان", "تماسها", "تماشای", "تمرینی", "تمساحی", "تمشکان", "تمشکها", "تمناان", "تمناها", "تمیزان", "تمیزها", "تناسبی", "تنبلان", "تنبلها", "تندباد", "تندتان", "تندشان", "تندمان", "تنهتان", "تنهشان", "تنهمان", "تنوران", "تنورها", "تنگتان", "تنگشان", "تنگمان", "تنگنای", "تنیسان", "تنیسها", "تهاجمی", "تهرانی", "تهویهی", "توالتی", "توانست", "توتتان", "توتشان", "توتمان", "توجهان", "توجهها", "تودهان", "تودهها", "تورتان", "تورشان", "تورمان", "توریان", "توریها", "توشتند", "توشتید", "توشتیم", "توفانی", "توفیقی", "توقیفی", "تولدان", "تولدها", "تومانی", "تونلان", "تونلها", "توپتان", "توپشان", "توپمان", "تکنسین", "تکنیکی", "تگرگان", "تگرگها", "تیراژی", "تیرتان", "تیرشان", "تیرمان", "تیرهان", "تیرهها", "تیشرتی", "تیشهان", "تیشهها", "تیغتان", "تیغشان", "تیغمان", "تیغیان", "تیغیها", "تیهوان", "تیهوها", "ثابتان", "ثابتها", "ثاقبان", "ثاقبها", "ثروتان", "ثروتها", "ثمرتان", "ثمرشان", "ثمرمان", "جاجیمی", "جادهان", "جادهها", "جادویی", "جاروان", "جاروها", "جاریان", "جاریها", "جامتان", "جامشان", "جامعهی", "جاممان", "جامیان", "جامیها", "جانانی", "جانتان", "جانشان", "جانمان", "جانوری", "جاهلان", "جاهلها", "جاوهان", "جاوهها", "جایزهی", "جدولان", "جدولها", "جذابان", "جذابها", "جراحان", "جراحها", "جراحیی", "جرقهان", "جرقهها", "جرمتان", "جرمشان", "جرممان", "جریمهی", "جزوهان", "جزوهها", "جشنتان", "جشنشان", "جشنمان", "جعبهان", "جعبهها", "جعفریی", "جغدتان", "جغدشان", "جغدمان", "جفتتان", "جفتشان", "جفتمان", "جلادان", "جلادها", "جلبتان", "جلبشان", "جلبمان", "جلدتان", "جلدشان", "جلدمان", "جلساتی", "جلوهان", "جلوهها", "جلیقهی", "جمجمهی", "جمشیدی", "جمعتان", "جمعشان", "جمعمان", "جمعهان", "جمعهها", "جنوبان", "جنوبها", "جنگتان", "جنگجوی", "جنگشان", "جنگلان", "جنگلها", "جنگمان", "جهادان", "جهادها", "جهالتی", "جهانان", "جهانها", "جهلتان", "جهلشان", "جهلمان", "جوازان", "جوازها", "جوانان", "جوانها", "جوانهی", "جواهری", "جوجهان", "جوجهها", "جودوان", "جودوها", "جورابی", "جوزتان", "جوزشان", "جوزمان", "جوشانی", "جوشتان", "جوششان", "جوشمان", "جوشکار", "جویبار", "جویتان", "جویشان", "جویمان", "جگرتان", "جگرشان", "جگرمان", "جیبتان", "جیبشان", "جیبمان", "حاجبان", "حاجبها", "حادثهی", "حاشیهی", "حاضران", "حاضرها", "حافظان", "حافظها", "حافظهی", "حامیان", "حامیها", "حاویان", "حاویها", "حاکمان", "حاکمها", "حبابان", "حبابها", "حبستان", "حبسشان", "حبسمان", "حجابان", "حجابها", "حجامتی", "حجرهان", "حجرهها", "حجمتان", "حجمشان", "حجممان", "حدودان", "حدودها", "حراجان", "حراجها", "حرصتان", "حرصشان", "حرصمان", "حرفتان", "حرفشان", "حرفمان", "حسابان", "حسابها", "حسادتی", "حسدتان", "حسدشان", "حسدمان", "حسرتان", "حسرتها", "حصاران", "حصارها", "حضانتی", "حضوریی", "حفاظان", "حفاظها", "حقوقان", "حقوقها", "حقوقیی", "حقیقتی", "حقیقیی", "حلزونی", "حلقهان", "حلقهها", "حلوایی", "حماسهی", "حمامان", "حمامها", "حمایتی", "حملهان", "حملهها", "حناتان", "حناشان", "حنامان", "حوادثی", "حواسان", "حواسها", "حوالیی", "حوضتان", "حوضشان", "حوضمان", "حوضهان", "حوضهها", "حوضچهی", "حکایتی", "حکمتان", "حکمتها", "حکمشان", "حکممان", "حکومتی", "حیاتان", "حیاتها", "حیاطان", "حیاطها", "حیرتان", "حیرتها", "حیلهان", "حیلهها", "خاتمان", "خاتمها", "خاتمهی", "خادمان", "خادمها", "خارتان", "خارشان", "خارمان", "خارکان", "خارکها", "خاستند", "خاستید", "خاستیم", "خاطرات", "خاطران", "خاطرها", "خاطرهی", "خالصان", "خالصها", "خالهان", "خالهها", "خامتان", "خامشان", "خاممان", "خامهان", "خامهها", "خاموشی", "خانهان", "خانهها", "خاوران", "خاورها", "خاویار", "خاکتان", "خاکشان", "خاکشیر", "خاکمان", "خبرتان", "خبرشان", "خبرمان", "خبریان", "خبریها", "خداتان", "خداشان", "خدامان", "خربزهی", "خردادی", "خردتان", "خردشان", "خردمان", "خرستان", "خرسشان", "خرسمان", "خرماان", "خرماها", "خرمتان", "خرمشان", "خرممان", "خروسان", "خروسها", "خرچنگی", "خرگوشی", "خریدان", "خریدها", "خزانان", "خزانها", "خسارتی", "خستگیی", "خسروان", "خسروها", "خسیسان", "خسیسها", "خشابان", "خشابها", "خشتتان", "خشتشان", "خشتمان", "خشخاشی", "خشمتان", "خشمشان", "خشممان", "خشنودی", "خشکهان", "خشکهها", "خصومتی", "خطاتان", "خطاشان", "خطامان", "خلبانی", "خلقتان", "خلقشان", "خلقمان", "خلیجان", "خلیجها", "خمیدهی", "خندهان", "خندهها", "خوابان", "خوابها", "خواستم", "خواستی", "خوانان", "خواندم", "خواندی", "خوانند", "خوانها", "خوانید", "خوانیم", "خواهری", "خواهند", "خواهید", "خواهیم", "خواهیی", "خوبتان", "خوبشان", "خوبمان", "خودروی", "خودکار", "خوردند", "خوردهی", "خوردید", "خوردیم", "خورشید", "خوریان", "خوریها", "خوشبوی", "خوشروی", "خونتان", "خونشان", "خونمان", "خوکتان", "خوکشان", "خوکمان", "خیابان", "خیاران", "خیارها", "خیاطان", "خیاطها", "خیالان", "خیالها", "خیامان", "خیامها", "خیانتی", "دادرسی", "دادسرا", "دادگاه", "دارابی", "دارایی", "دارتان", "دارتها", "دارشان", "دارمان", "داروان", "داروها", "دارچین", "دارکوب", "داریان", "داریها", "داریوش", "داشتند", "داشتید", "داشتیم", "داغتان", "داغشان", "داغمان", "دامتان", "دامدار", "دامشان", "داممان", "دامنان", "دامنها", "دامنهی", "دانستم", "دانستی", "دانشان", "دانشها", "دانهان", "دانهها", "داوران", "داورها", "داوریی", "داییان", "داییها", "دبستان", "دختران", "دخترها", "دراجان", "دراجها", "درامدی", "درایتی", "درختان", "درختها", "دردتان", "دردشان", "دردمان", "درستان", "درستها", "درمانی", "درهتان", "درهشان", "درهمان", "دروغان", "دروغها", "درویشی", "درگاهی", "دریاان", "دریاها", "دریاچه", "دریایی", "دستانی", "دستبند", "دستتان", "دستشان", "دستمال", "دستمان", "دستمبو", "دستمزد", "دستنبو", "دستوری", "دستکشی", "دستیان", "دستیها", "دشتتان", "دشتشان", "دشتمان", "دشمنیی", "دشواری", "دغلتان", "دغلشان", "دغلمان", "دفاعان", "دفاعها", "دفتران", "دفترها", "دفترچه", "دقایقی", "دلاران", "دلارها", "دلاوری", "دلبندی", "دلربای", "دلفینی", "دلمهان", "دلمهها", "دلنشین", "دلگرمی", "دلیران", "دلیرها", "دماغان", "دماغها", "دمپایی", "دندانی", "دنیویی", "دهانان", "دهانها", "دهقانی", "دهکدهی", "دوانیی", "دوختند", "دوختید", "دوختیم", "دودکشی", "دورانی", "دوستیی", "دوشابی", "دوشتان", "دوششان", "دوشمان", "دوغتان", "دوغشان", "دوغمان", "دوچرخه", "دویتان", "دویشان", "دویمان", "دکتران", "دکترها", "دکلتان", "دکلشان", "دکلمان", "دکمهان", "دکمهها", "دیداری", "دیدبان", "دیروزی", "دیزیان", "دیزیها", "دیستان", "دیسشان", "دیسمان", "دیسکان", "دیسکها", "دینتان", "دینشان", "دینمان", "دیهتان", "دیهشان", "دیهمان", "دیواری", "دیوانی", "دیوتان", "دیوشان", "دیومان", "دیگتان", "دیگشان", "دیگمان", "دیگچهی", "ذخیرهی", "ذرتتان", "ذرتشان", "ذرتمان", "ذرهتان", "ذرهشان", "ذرهمان", "ذهنتان", "ذهنشان", "ذهنمان", "رابطهی", "رادیوی", "رازتان", "رازشان", "رازقیی", "رازمان", "راستان", "راستها", "راندند", "راندهی", "راندید", "راندیم", "راننده", "رانیان", "رانیها", "راهتان", "راهروی", "راهشان", "راهمان", "راهنما", "راهوری", "راکونی", "رایتان", "رایشان", "رایمان", "ربودهی", "رتیلان", "رتیلها", "رزماری", "رزمتان", "رزمشان", "رزممان", "رسالتی", "رسانهی", "رستمان", "رستمها", "رستمیی", "رسیدان", "رسیدها", "رشتتان", "رشتشان", "رشتمان", "رشتهان", "رشتهها", "رضایتی", "رطبتان", "رطبشان", "رطبمان", "رعدتان", "رعدشان", "رعدمان", "رعناان", "رعناها", "رفاقتی", "رفتاری", "رقصتان", "رقصشان", "رقصمان", "رنجتان", "رنجشان", "رنجمان", "رندهان", "رندهها", "رنگتان", "رنگشان", "رنگمان", "رنگینی", "رهنتان", "رهنشان", "رهنمان", "روانان", "روانها", "روباهی", "رودتان", "رودشان", "رودمان", "روزتان", "روزشان", "روزمان", "روزهان", "روزهها", "روزینی", "روستای", "روسریی", "روسیهی", "روشتان", "روششان", "روشمان", "روشنان", "روشنها", "روغنان", "روغنها", "رولتان", "رولتها", "رومیزی", "روگذری", "رویتان", "رویشان", "رویمان", "ریاتان", "ریاشان", "ریالان", "ریالها", "ریامان", "ریحانی", "ریختند", "ریختید", "ریختیم", "ریشتان", "ریششان", "ریشمان", "ریشهان", "ریشهها", "ریواسی", "ریگتان", "ریگشان", "ریگمان", "زادبوم", "زاریان", "زاریها", "زاغتان", "زاغشان", "زاغمان", "زانوان", "زانوها", "زاهدان", "زاگرسی", "زبانان", "زبانها", "زخمتان", "زخمشان", "زخممان", "زرافهی", "زردالو", "زردتان", "زردشان", "زردمان", "زرشکان", "زرشکها", "زرگران", "زرگرها", "زشتتان", "زشتشان", "زشتمان", "زعفران", "زغالان", "زغالها", "زلزلهی", "زلفتان", "زلفشان", "زلفمان", "زمستان", "زمینان", "زمینها", "زمینهی", "زمینیی", "زنبوری", "زنبیلی", "زنجانی", "زنجبیل", "زندانی", "زندتان", "زندشان", "زندمان", "زنگتان", "زنگشان", "زنگمان", "زهرتان", "زهرشان", "زهرمان", "زودپزی", "زونکنی", "زکاتان", "زکاتها", "زیارتی", "زیانان", "زیانها", "زیباان", "زیباها", "زیتونی", "زیرتان", "زیرشان", "زیرمان", "زیرهان", "زیرهها", "زیرکیی", "زیرگذر", "زیستند", "زیستید", "زیستیم", "زیلوان", "زیلوها", "زیپتان", "زیپشان", "زیپمان", "ساحلان", "ساحلها", "ساحلیی", "ساختند", "ساختید", "ساختیم", "ساردین", "ساریان", "ساریها", "سازتان", "سازشان", "سازشها", "سازمان", "ساستان", "ساسشان", "ساسمان", "ساطوری", "ساعتان", "ساعتها", "ساقتان", "ساقشان", "ساقمان", "سالادی", "سالاری", "سالتان", "سالشان", "سالمان", "سالمون", "سالنان", "سالنها", "سایهان", "سایهها", "سبدتان", "سبدشان", "سبدمان", "سبزتان", "سبزشان", "سبزمان", "سبزیان", "سبزیها", "ستارهی", "ستایشی", "ستمگری", "ستونان", "ستونها", "سحرتان", "سحرشان", "سحرمان", "سخاوتی", "سراتان", "سراشان", "سرامان", "سربازی", "سرختان", "سرخشان", "سرخمان", "سردابی", "سرداری", "سرسبزی", "سرسرای", "سرشاری", "سرشتند", "سرشتید", "سرشتیم", "سرشیری", "سرعتان", "سرعتها", "سرفهان", "سرفهها", "سرماان", "سرماها", "سرمایه", "سرمتان", "سرمشان", "سرممان", "سروتان", "سروران", "سرورها", "سروشان", "سرومان", "سرپرست", "سرکهان", "سرکهها", "سرگذشت", "سطلتان", "سطلشان", "سطلمان", "سعدیان", "سعدیها", "سفارتی", "سفارشی", "سفالگر", "سفتهان", "سفتهها", "سفرتان", "سفرشان", "سفرمان", "سفرهان", "سفرهها", "سفیدان", "سفیدها", "سفیهان", "سفیهها", "سقفتان", "سقفشان", "سقفمان", "سلاحان", "سلاحها", "سلامان", "سلامها", "سلولان", "سلولها", "سماقان", "سماقها", "سمبوسه", "سمتتان", "سمتشان", "سمتمان", "سمنانی", "سمندری", "سمنوان", "سمنوها", "سنتتان", "سنتشان", "سنتمان", "سنجابی", "سنجاقی", "سنجتان", "سنجشان", "سنجمان", "سنندجی", "سنواتی", "سنگتان", "سنگران", "سنگرها", "سنگشان", "سنگمان", "سهرابی", "سواریی", "سوختند", "سوختید", "سوختیم", "سودتان", "سودشان", "سودمان", "سودوکو", "سورهان", "سورهها", "سوریهی", "سوزنان", "سوزنها", "سوسمار", "سوسنان", "سوسنها", "سوسکان", "سوسکها", "سوغاتی", "سوهانی", "سوپتان", "سوپشان", "سوپمان", "سوگتان", "سوگشان", "سوگمان", "سویاان", "سویاها", "سویشرت", "سپاهان", "سپاهها", "سپرتان", "سپردهی", "سپرشان", "سپرمان", "سپهبدی", "سپیدان", "سپیدها", "سکهتان", "سکهشان", "سکهمان", "سیارهی", "سیاستی", "سیاهان", "سیاهها", "سیاهیی", "سیاوشی", "سیبتان", "سیبشان", "سیبمان", "سیبکان", "سیبکها", "سیرتان", "سیرشان", "سیرمان", "سیلتان", "سیلشان", "سیلمان", "سیمتان", "سیمرغی", "سیمشان", "سیممان", "سینمای", "سینهان", "سینهها", "سیکلتی", "سیگاری", "شاختان", "شاخشان", "شاخمان", "شاخهان", "شاخهها", "شادابی", "شادتان", "شادشان", "شادمان", "شادیان", "شادیها", "شارژری", "شاعران", "شاعرها", "شالتان", "شالشان", "شالمان", "شامتان", "شامشان", "شاملوی", "شاممان", "شامیان", "شامیها", "شانهان", "شانهها", "شاهتان", "شاهدان", "شاهدها", "شاهشان", "شاهمان", "شاهینی", "شاکیان", "شاکیها", "شایانی", "شایستم", "شایستی", "شبنمان", "شبنمها", "شبکهان", "شبکهها", "شترتان", "شترشان", "شترمان", "شترمرغ", "شجاعان", "شجاعتی", "شجاعها", "شخصیان", "شخصیها", "شرابان", "شرابها", "شرافتی", "شربتان", "شربتها", "شربتیی", "شرعتان", "شرعشان", "شرعمان", "شریفان", "شریفها", "شطرنجی", "شعرتان", "شعرشان", "شعرمان", "شغالان", "شغالها", "شفقتان", "شفقشان", "شفقمان", "شلغمان", "شلغمها", "شلواری", "شلیلان", "شلیلها", "شمشادی", "شمعتان", "شمعدان", "شمعشان", "شمعمان", "شناتان", "شناختم", "شناختی", "شناسند", "شناسید", "شناسیم", "شناشان", "شنامان", "شنبهان", "شنبهها", "شنواان", "شنواها", "شهابان", "شهابها", "شهادتی", "شهامتی", "شهریار", "شهریان", "شهریها", "شهریور", "شوراان", "شوراها", "شورتان", "شورشان", "شورمان", "شوفاژی", "شوقتان", "شوقشان", "شوقمان", "شومتان", "شومشان", "شوممان", "شومینه", "شوهران", "شوهرها", "شویدان", "شویدها", "شپشتان", "شپششان", "شپشمان", "شکاران", "شکارها", "شکارچی", "شکایتی", "شکرتان", "شکرشان", "شکرمان", "شکستان", "شکستند", "شکستها", "شکستید", "شکستیم", "شکلاتی", "شکلتان", "شکلشان", "شکلمان", "شکمتان", "شکمشان", "شکممان", "شکوفای", "شکوفهی", "شیرازی", "شیرتان", "شیرجهی", "شیرشان", "شیرمان", "شیرهان", "شیرهها", "شیرینی", "شیشلیک", "شیشهان", "شیشهها", "شیونان", "شیونها", "شیپوری", "صاحبان", "صاحبها", "صادرات", "صادقان", "صادقها", "صاعقهی", "صبحتان", "صبحشان", "صبحمان", "صبرتان", "صبرشان", "صبرمان", "صحراان", "صحراها", "صخرهان", "صخرهها", "صداقتی", "صدفتان", "صدفشان", "صدفمان", "صدمتان", "صدمشان", "صدممان", "صرافیی", "صلحتان", "صلحشان", "صلحمان", "صندلان", "صندلها", "صندلیی", "صوتتان", "صوتشان", "صوتمان", "صورتان", "صورتها", "صیادان", "صیادها", "صیادیی", "ضبطتان", "ضبطشان", "ضبطمان", "ضلالتی", "طاستان", "طاسشان", "طاسمان", "طاقتان", "طاقشان", "طاقمان", "طالبیی", "طبقاتی", "طبلتان", "طبلشان", "طبلمان", "طبیعتی", "طراحان", "طراحها", "طراوتی", "طرحتان", "طرحشان", "طرحمان", "طرفتان", "طرفشان", "طرفمان", "طعمتان", "طعمشان", "طعممان", "طفلتان", "طفلشان", "طفلمان", "طلاتان", "طلاساز", "طلاشان", "طلاقان", "طلاقها", "طلامان", "طلاییی", "طلبتان", "طلبشان", "طلبمان", "طمعتان", "طمعشان", "طمعمان", "طنابان", "طنابها", "طنزتان", "طنزشان", "طنزمان", "طوطیان", "طوطیها", "طوفانی", "طولتان", "طولشان", "طولمان", "ظالمان", "ظالمها", "ظرفتان", "ظرفشان", "ظرفمان", "ظلمانی", "ظلمتان", "ظلمشان", "ظلممان", "ظهرتان", "ظهرشان", "ظهرمان", "عابران", "عابرها", "عادلان", "عادلها", "عاشقان", "عاشقها", "عاقبتی", "عاقلان", "عاقلها", "عالیان", "عالیها", "عبادتی", "عدالتی", "عداوتی", "عدستان", "عدسشان", "عدسمان", "عراقان", "عراقها", "عرفتان", "عرفشان", "عرفمان", "عروسان", "عروسها", "عروسکی", "عسلتان", "عسلشان", "عسلمان", "عشقتان", "عشقشان", "عشقمان", "عصاتان", "عصاشان", "عصامان", "عصبتان", "عصبشان", "عصبمان", "عصرتان", "عصرشان", "عصرمان", "عضوتان", "عضوشان", "عضومان", "عطاران", "عطارها", "عقابان", "عقابها", "عقدتان", "عقدشان", "عقدمان", "عقربان", "عقربها", "عقلتان", "عقلشان", "عقلمان", "علفتان", "علفشان", "علفمان", "علمتان", "علمشان", "علممان", "عمارتی", "عمانان", "عمانها", "عمقتان", "عمقشان", "عمقمان", "عملتان", "عملشان", "عملمان", "عمهتان", "عمهشان", "عمهمان", "عموتان", "عموشان", "عمومان", "عنابان", "عنابها", "عنکبوت", "عوارضی", "عکاسان", "عکاسها", "عکاسیی", "عکستان", "عکسشان", "عکسمان", "عیدتان", "عیدشان", "عیدمان", "عیدیان", "عیدیها", "عینکان", "عینکها", "غارتان", "غارشان", "غارمان", "غازتان", "غازشان", "غازمان", "غذاتان", "غذاشان", "غذامان", "غربتان", "غربشان", "غربمان", "غرقتان", "غرقشان", "غرقمان", "غروبان", "غروبها", "غریقان", "غریقها", "غزلتان", "غزلشان", "غزلمان", "غصهتان", "غصهشان", "غصهمان", "غفلتان", "غفلتها", "غمناکی", "غواصان", "غواصها", "غولتان", "غولشان", "غولمان", "فاسقان", "فاسقها", "فالتان", "فالشان", "فالمان", "فاکتور", "فتحتان", "فتحشان", "فتحمان", "فراریی", "فراستی", "فرانسه", "فرجامی", "فرخنده", "فرداان", "فرداها", "فردوسی", "فرزندی", "فرشتان", "فرششان", "فرشمان", "فرنگیی", "فرهنگی", "فروتان", "فروتها", "فروختم", "فروختی", "فروشان", "فروشند", "فروشها", "فروشید", "فروشیم", "فروغان", "فروغها", "فریادی", "فریبان", "فریبها", "فریزری", "فسختان", "فسخشان", "فسخمان", "فسنجان", "فصلتان", "فصلشان", "فصلمان", "فضاتان", "فضاشان", "فضامان", "فعلتان", "فعلشان", "فعلمان", "فغانان", "فغانها", "فلزتان", "فلزشان", "فلزمان", "فلشتان", "فلششان", "فلشمان", "فلفلان", "فلفلها", "فلوسان", "فلوسها", "فلکتان", "فلکشان", "فلکمان", "فنجانی", "فندقان", "فندقها", "فندکان", "فندکها", "فنچتان", "فنچشان", "فنچمان", "فهمتان", "فهمشان", "فهممان", "فوتبال", "فوتتان", "فوتسال", "فوتشان", "فوتمان", "فوجتان", "فوجشان", "فوجمان", "فولادی", "فکرتان", "فکرشان", "فکرمان", "فیروزه", "فیلتان", "فیلشان", "فیلمان", "قابتان", "قابشان", "قابلمه", "قابمان", "قاتوقی", "قارچان", "قارچها", "قاسمیی", "قاشقان", "قاشقها", "قاصدان", "قاصدها", "قاصدکی", "قاضیان", "قاضیها", "قاطران", "قاطرها", "قالیچه", "قانونی", "قایقان", "قایقها", "قتلتان", "قتلشان", "قتلمان", "قدحتان", "قدحشان", "قدحمان", "قدرتان", "قدرتها", "قدرشان", "قدرمان", "قدمتان", "قدمشان", "قدممان", "قدومهی", "قرآنان", "قرآنها", "قراران", "قرارها", "قرانان", "قرانها", "قرصتان", "قرصشان", "قرصمان", "قرضتان", "قرضشان", "قرضمان", "قرقیان", "قرقیها", "قرمزان", "قرمزها", "قرنتان", "قرنشان", "قرنمان", "قزلتان", "قزلشان", "قزلمان", "قزوینی", "قسمتان", "قسمشان", "قسممان", "قشنگان", "قشنگها", "قصاصان", "قصاصها", "قصرتان", "قصرشان", "قصرمان", "قصیدهی", "قطابان", "قطابها", "قطاران", "قطارها", "قطبتان", "قطبشان", "قطبمان", "قطرتان", "قطرشان", "قطرمان", "قطرهان", "قطرهها", "قفلتان", "قفلشان", "قفلمان", "قلبتان", "قلبشان", "قلبمان", "قلعهان", "قلعهها", "قلمتان", "قلمشان", "قلممان", "قلهتان", "قلهشان", "قلهمان", "قلیهان", "قلیهها", "قناریی", "قندتان", "قندشان", "قندمان", "قهرمان", "قهوهان", "قهوهها", "قورمهی", "قوریان", "قوریها", "قوطیان", "قوطیها", "قومتان", "قومشان", "قوممان", "قویتان", "قویشان", "قویمان", "قیمهان", "قیمهها", "قیچیان", "قیچیها", "لاکتان", "لاکشان", "لاکمان", "لایحهی", "لباسان", "لباسها", "لباسیی", "لبخندی", "لبنانی", "لحافان", "لحافها", "لحنتان", "لحنشان", "لحنمان", "لذتتان", "لذتشان", "لذتمان", "لرزتان", "لرزشان", "لرزمان", "لطفتان", "لطفشان", "لطفمان", "لعلتان", "لعلشان", "لعلمان", "لغتتان", "لغتشان", "لغتمان", "لنجتان", "لنجشان", "لنجمان", "لنچتان", "لنچشان", "لنچمان", "لوبیای", "لوحتان", "لوحشان", "لوحمان", "لودوان", "لودوها", "لوزتان", "لوزشان", "لوزمان", "لولهان", "لولهها", "لپهتان", "لپهشان", "لپهمان", "لکنتان", "لکنتها", "لیموان", "لیموها", "لیوانی", "ماتتان", "ماتشان", "ماتمان", "ماتمها", "مادران", "مادرها", "ماراتن", "مارتان", "مارشان", "مارمان", "ماستان", "ماستها", "ماسهان", "ماسهها", "ماشتان", "ماششان", "ماشمان", "ماشینی", "مالیات", "ماماان", "ماماها", "مانتوی", "ماندند", "ماندید", "ماندیم", "ماهتان", "ماهشان", "ماهمان", "ماهیان", "ماهیها", "ماژیکی", "مایعان", "مایعها", "مایوسی", "مبلتان", "مبلشان", "مبلمان", "متروان", "متروها", "متهمان", "متهمها", "مجازات", "مجرمان", "مجرمها", "مجریان", "مجریها", "محزونی", "محنتان", "محنتها", "مخلوطی", "مدادان", "مدادها", "مدرسان", "مدرسها", "مدرسهی", "مدیران", "مدیرها", "مرجانی", "مرخصیی", "مردابی", "مردادی", "مردتان", "مردشان", "مردمان", "مردمها", "مرزتان", "مرزشان", "مرزمان", "مرزهان", "مرزهها", "مرغابی", "مرغتان", "مرغشان", "مرغمان", "مرگتان", "مرگشان", "مرگمان", "مریضان", "مریضها", "مزایای", "مزهتان", "مزهشان", "مزهمان", "مسافری", "مسرتان", "مسرتها", "مسکنان", "مسکنها", "مسگران", "مسگرها", "مشتتان", "مشتشان", "مشتمان", "مشعلان", "مشعلها", "مشهدان", "مشهدها", "مشکیان", "مشکیها", "مصادره", "مصرتان", "مصرشان", "مصرمان", "مطبتان", "مطبشان", "مطبمان", "معامله", "معاونی", "معدهان", "معدهها", "معرفتی", "معلمان", "معلمها", "معماری", "مغزتان", "مغزشان", "مغزمان", "مفتتان", "مفتشان", "مفتمان", "مقنعهی", "ملافهی", "ملاقهی", "ملختان", "ملخشان", "ملخمان", "ملوانی", "ملکتان", "ملکشان", "ملکمان", "ملکهان", "ملکهها", "منحوسی", "منزلان", "منزلها", "منشیان", "منشیها", "منچتان", "منچشان", "منچمان", "منگنهی", "مهتابی", "مهرتان", "مهرشان", "مهرمان", "مهریهی", "مهمتان", "مهمشان", "مهممان", "مهندسی", "موبایل", "موتوری", "موجتان", "موجشان", "موجمان", "مودمان", "مودمها", "مورچهی", "موزتان", "موزشان", "موزمان", "موزهان", "موزهها", "موستان", "موسشان", "موسمان", "موشتان", "موششان", "موشمان", "موشکان", "موشکها", "موفقان", "موفقها", "مولانا", "مومنان", "مومنها", "موکتان", "موکتها", "موکلان", "موکلها", "مویزان", "مویزها", "مچیتان", "مچیشان", "مچیمان", "مژهتان", "مژهشان", "مژهمان", "مکانیک", "مکرتان", "مکرشان", "مکرمان", "مکروهی", "مگستان", "مگسشان", "مگسمان", "میآیند", "میآیید", "میآییم", "میایند", "میایید", "میاییم", "میبازد", "میبازم", "میبازی", "میبرند", "میبرید", "میبریم", "میبندد", "میبندم", "میبندی", "میبیند", "میبینم", "میبینی", "میتازد", "میتازم", "میتازی", "میجهند", "میجهید", "میجهیم", "میخورد", "میخورم", "میخوری", "میخکان", "میخکها", "میدارد", "میدارم", "میداری", "میداند", "میدانم", "میدانی", "میدهند", "میدهید", "میدهیم", "میدوزد", "میدوزم", "میدوزی", "میراند", "میرانم", "میرانی", "میرزای", "میرسند", "میرسید", "میرسیم", "میروند", "میروید", "میرویم", "میریزد", "میریزم", "میریزی", "میزتان", "میزشان", "میزمان", "میزنند", "میزنید", "میزنیم", "میسازد", "میسازم", "میسازی", "میسوزد", "میسوزم", "میسوزی", "میشتان", "میششان", "میشمان", "میشوند", "میشوید", "میشویم", "میشویی", "میشکند", "میشکنم", "میشکنی", "میماند", "میمانم", "میمانی", "میمونی", "میناان", "میناها", "مینیان", "مینیها", "میوهان", "میوهها", "میپرند", "میپرید", "میپریم", "میپزند", "میپزید", "میپزیم", "میکارد", "میکارم", "میکاری", "میکشند", "میکشید", "میکشیم", "میکنند", "میکنید", "میکنیم", "میگذرد", "میگذرم", "میگذری", "میگردد", "میگردم", "میگردی", "میگوان", "میگوند", "میگوها", "میگوید", "میگویم", "نآموزد", "نآموزم", "نآموزی", "ناخدای", "ناخنان", "ناخنها", "نادانی", "نارنجی", "نارنگی", "نارگیل", "نازنین", "نالهان", "نالهها", "نامهان", "نامهها", "ناموزد", "ناموزم", "ناموزی", "نانتان", "نانشان", "نانمان", "ناوتان", "ناوشان", "ناومان", "ناپسند", "ناکامی", "نباتان", "نباتها", "نبازند", "نبازید", "نبازیم", "نبندند", "نبندید", "نبندیم", "نبوغان", "نبوغها", "نبینند", "نبینید", "نبینیم", "نتازند", "نتازید", "نتازیم", "نجاتان", "نجاتها", "نجاران", "نجارها", "نخلتان", "نخلشان", "نخلمان", "نخواند", "نخوانم", "نخوانی", "نخواهد", "نخواهم", "نخواهی", "نخودان", "نخودها", "نخورند", "نخورید", "نخوریم", "ندارند", "ندارید", "نداریم", "ندانند", "ندانید", "ندانیم", "ندوزند", "ندوزید", "ندوزیم", "نرانند", "نرانید", "نرانیم", "نردتان", "نردشان", "نردمان", "نردهان", "نردهها", "نرمتان", "نرمشان", "نرممان", "نرگسان", "نرگسها", "نریزند", "نریزید", "نریزیم", "نسازند", "نسازید", "نسازیم", "نسوزند", "نسوزید", "نسوزیم", "نسیمان", "نسیمها", "نشاطان", "نشاطها", "نشانان", "نشانها", "نشناسد", "نشناسم", "نشناسی", "نشویند", "نشویید", "نشوییم", "نشکنند", "نشکنید", "نشکنیم", "نشیمنی", "نظامیی", "نظریان", "نظریها", "نعلبکی", "نعناعی", "نفتتان", "نفتشان", "نفتمان", "نفرتان", "نفرتها", "نفروشد", "نفروشم", "نفروشی", "نفقهان", "نفقهها", "نقابان", "نقابها", "نقاشان", "نقاشها", "نقالهی", "نقرهان", "نقرهها", "نقشهان", "نقشهها", "نقطهان", "نقطهها", "نمازان", "نمازها", "نمانند", "نمانید", "نمانیم", "نمدتان", "نمدشان", "نمدمان", "نمکتان", "نمکشان", "نمکمان", "ننوازد", "ننوازم", "ننوازی", "ننویسد", "ننویسم", "ننویسی", "نهنگان", "نهنگها", "نواختم", "نواختی", "نواریی", "نوازند", "نوازید", "نوازیم", "نورتان", "نوردیی", "نورشان", "نورمان", "نوروزی", "نوشتند", "نوشتید", "نوشتیم", "نومیدی", "نوهتان", "نوهشان", "نوهمان", "نویسان", "نویسند", "نویسها", "نویسید", "نویسیم", "نکاحان", "نکاحها", "نکارند", "نکارید", "نکاریم", "نگاهان", "نگاهها", "نگذرند", "نگذرید", "نگذریم", "نگردند", "نگردید", "نگردیم", "نگهبان", "نیزهان", "نیزهها", "نیشتان", "نیششان", "نیشمان", "نیلیان", "نیلیها", "نیماان", "نیماها", "نیکوان", "نیکوها", "هاکیان", "هاکیها", "هبهتان", "هبهشان", "هبهمان", "هدایتی", "هدفتان", "هدفشان", "هدفمان", "هدفونی", "هدهدان", "هدهدها", "هدیهان", "هدیهها", "هزاران", "هزارها", "هزینهی", "هشتتان", "هشتشان", "هشتمان", "هلهلهی", "هلوتان", "هلوشان", "هلومان", "همدانی", "همدلیی", "همراهی", "همسران", "همسرها", "همشهری", "هندبال", "هندتان", "هندشان", "هندمان", "هندیان", "هندیها", "هواتان", "هواشان", "هوامان", "هودیان", "هودیها", "هوشتان", "هوششان", "هوشمان", "هویجان", "هویجها", "هیجانی", "واردات", "والتان", "والشان", "والمان", "وامتان", "وامشان", "واممان", "وانتان", "وانتها", "وانیلی", "وبکمان", "وبکمها", "وثیقهی", "وجدتان", "وجدشان", "وجدمان", "وزغتان", "وزغشان", "وزغمان", "وزنهان", "وزنهها", "وصیتان", "وصیتها", "ووشوان", "ووشوها", "وکالتی", "وکیلان", "وکیلها", "ویراست", "ویلچری", "پاتکان", "پاتکها", "پاداشی", "پاروان", "پاروها", "پارچان", "پارچها", "پارچهی", "پازلان", "پازلها", "پاسبان", "پاسخان", "پاسخها", "پاسدار", "پاسوری", "پاشنهی", "پالتوی", "پاپایا", "پاپیون", "پاکتان", "پاکشان", "پاکمان", "پایانه", "پایتان", "پایشان", "پایشها", "پایمان", "پایهان", "پایهها", "پاییزی", "پتوتان", "پتوشان", "پتومان", "پدالان", "پدالها", "پدرامی", "پدرتان", "پدرشان", "پدرمان", "پدیدان", "پدیدها", "پذیران", "پذیرشی", "پذیرها", "پرتابی", "پرتقال", "پرداخت", "پردازد", "پردازم", "پردازی", "پردهان", "پردهها", "پرستار", "پرستان", "پرستها", "پرستوک", "پرستوی", "پرشتان", "پرششان", "پرشمان", "پروازی", "پروانه", "پرورشی", "پرونده", "پروژهی", "پروینی", "پرچتان", "پرچشان", "پرچمان", "پرچمها", "پرگاری", "پزشکان", "پزشکها", "پزشکیی", "پستانی", "پستهان", "پستهها", "پستوان", "پستوها", "پشتتان", "پشتشان", "پشتمان", "پشتیان", "پشتیها", "پشمتان", "پشمشان", "پشممان", "پشمکان", "پشمکها", "پشهتان", "پشهشان", "پشهمان", "پلاکان", "پلاکها", "پلنگان", "پلنگها", "پلهتان", "پلهشان", "پلهمان", "پلوتان", "پلوشان", "پلومان", "پلیدان", "پلیدها", "پلیسان", "پلیسها", "پلیوری", "پمادان", "پمادها", "پمپتان", "پمپشان", "پمپمان", "پناهان", "پناهها", "پنبهان", "پنبهها", "پنجتان", "پنجرهی", "پنجشان", "پنجمان", "پنداشت", "پنکهان", "پنکهها", "پنیران", "پنیرها", "پهلوان", "پهلوها", "پهنتان", "پهنشان", "پهنمان", "پوتینی", "پودران", "پودرها", "پوزتان", "پوزشان", "پوزمان", "پوستان", "پوستها", "پوششان", "پوششها", "پوشهان", "پوشهها", "پولتان", "پولشان", "پولمان", "پولکیی", "پوپکان", "پوپکها", "پوکتان", "پوکشان", "پوکمان", "پویاان", "پویاها", "پژوهشی", "پیادهی", "پیازان", "پیازها", "پیازچه", "پیالهی", "پیامان", "پیامها", "پیراست", "پیراهن", "پیروزی", "پیشانی", "پیشتان", "پیشروی", "پیششان", "پیشمان", "پیوندی", "پیپتان", "پیپشان", "پیپمان", "پیچتان", "پیچشان", "پیچمان", "پیچکان", "پیچکها", "پیکتان", "پیکران", "پیکرها", "پیکرهی", "پیکشان", "پیکمان", "چابکان", "چابکها", "چادران", "چادرها", "چارهان", "چارهها", "چاشنیی", "چاقتان", "چاقشان", "چاقمان", "چاقوان", "چاقوها", "چالشان", "چالشها", "چانهان", "چانهها", "چاهتان", "چاهشان", "چاهمان", "چاودار", "چاپتان", "چاپشان", "چاپمان", "چاپگری", "چاکران", "چاکرها", "چایتان", "چایشان", "چایمان", "چترتان", "چترشان", "چترمان", "چراغان", "چراغها", "چرختان", "چرخشان", "چرخمان", "چروکان", "چروکها", "چرکینی", "چسبتان", "چسبشان", "چسبمان", "چشمتان", "چشمشان", "چشممان", "چشمهان", "چشمهها", "چغندری", "چفتتان", "چفتشان", "چفتمان", "چلوتان", "چلوشان", "چلومان", "چلچلهی", "چمدانی", "چمنتان", "چمنشان", "چمنمان", "چنجهان", "چنجهها", "چنگالی", "چنگتان", "چنگشان", "چنگمان", "چهرهان", "چهرهها", "چوبتان", "چوبشان", "چوبمان", "چوبکان", "چوبکها", "چوپانی", "چکاوکی", "چکشتان", "چکششان", "چکشمان", "چکمهان", "چکمهها", "چیتیان", "چیتیها", "چیلران", "چیلرها", "چینتان", "چینشان", "چینمان", "ژاپنان", "ژاپنها", "کاختان", "کاخشان", "کاخمان", "کاراته", "کارتان", "کارتها", "کاردان", "کاردها", "کارشان", "کارمان", "کارمند", "کارواش", "کارگری", "کاسهان", "کاسهها", "کاشانه", "کاشانی", "کاشتان", "کاشتند", "کاشتید", "کاشتیم", "کاششان", "کاشمان", "کاشیان", "کاشیها", "کاغذان", "کاغذها", "کافران", "کافرها", "کامیاب", "کامیون", "کانوان", "کانوها", "کاهوان", "کاهوها", "کاپشنی", "کایاکی", "کبابان", "کبابها", "کبدتان", "کبدشان", "کبدمان", "کبوتری", "کبکتان", "کبکشان", "کبکمان", "کتابان", "کتابها", "کتانان", "کتانها", "کتانیی", "کتریان", "کتریها", "کتلتان", "کتلتها", "کثیفان", "کثیفها", "کدوتان", "کدوشان", "کدومان", "کرامتی", "کراوات", "کرجتان", "کرجشان", "کرجمان", "کرفسان", "کرفسها", "کرمانی", "کرمتان", "کرمشان", "کرممان", "کرهتان", "کرهشان", "کرهمان", "کرکرهی", "کرکسان", "کرکسها", "کرگدنی", "کسبتان", "کسبشان", "کسبمان", "کشاورز", "کشتتان", "کشتشان", "کشتمان", "کشتیان", "کشتیها", "کشمشان", "کشمشها", "کشوتان", "کشوشان", "کشومان", "کشکتان", "کشکشان", "کشکمان", "کفاشان", "کفاشها", "کفالتی", "کفتاری", "کفشتان", "کفششان", "کفشمان", "کفنتان", "کفنشان", "کفنمان", "کفگیری", "کلاسور", "کلاغان", "کلاغها", "کلامان", "کلامها", "کلاهان", "کلاهها", "کلبهان", "کلبهها", "کلماتی", "کلمتان", "کلمشان", "کلممان", "کلونان", "کلونها", "کلوچهی", "کلیدان", "کلیدها", "کلینیک", "کلیهان", "کلیهها", "کمانان", "کمانها", "کمدتان", "کمدشان", "کمدمان", "کمربند", "کمرتان", "کمرشان", "کمرمان", "کنجدان", "کنجدها", "کندتان", "کندشان", "کندمان", "کنهتان", "کنهشان", "کنهمان", "کنگران", "کنگرها", "کوبیده", "کودتان", "کودشان", "کودمان", "کورهان", "کورهها", "کوروشی", "کوزهان", "کوزهها", "کوسهان", "کوسهها", "کوشکان", "کوشکها", "کوفتهی", "کولران", "کولرها", "کولهان", "کولهها", "کومهان", "کومهها", "کونگان", "کونگها", "کوهتان", "کوهشان", "کوهمان", "کوچهان", "کوچهها", "کوکوان", "کوکوها", "کویتان", "کویتها", "کویران", "کویرها", "کپسولی", "کپوران", "کپورها", "کچلتان", "کچلشان", "کچلمان", "کیاستی", "کیبورد", "کیدتان", "کیدشان", "کیدمان", "کیسهان", "کیسهها", "کیفتان", "کیفشان", "کیفمان", "کینتان", "کینشان", "کینمان", "کینهان", "کینهها", "کیکتان", "کیکشان", "کیکمان", "گازتان", "گازدار", "گازشان", "گازمان", "گازیان", "گازیها", "گاوتان", "گاوشان", "گاومان", "گداتان", "گداختم", "گداختی", "گداشان", "گدامان", "گذاشتم", "گذاشتی", "گذرتان", "گذرشان", "گذرمان", "گذشتان", "گذشتند", "گذشتها", "گذشتید", "گذشتیم", "گربهان", "گربهها", "گردابی", "گردتان", "گردشان", "گردشها", "گردمان", "گردنان", "گردنها", "گردوان", "گردونی", "گردوها", "گرمتان", "گرمشان", "گرممان", "گرمکان", "گرمکها", "گروهان", "گروهها", "گرگانی", "گرگتان", "گرگشان", "گرگمان", "گریختم", "گریختی", "گریهان", "گریهها", "گریپان", "گریپها", "گشنیزی", "گلابان", "گلابها", "گلابیی", "گلایلی", "گلدانی", "گلناری", "گلوتان", "گلوشان", "گلومان", "گلپران", "گلپرها", "گلیمان", "گلیمها", "گمراهی", "گمرکان", "گمرکها", "گنجشکی", "گندمان", "گندمها", "گوجهان", "گوجهها", "گودتان", "گودشان", "گودمان", "گورخری", "گوریلی", "گوسفند", "گوشتان", "گوشتها", "گوششان", "گوشمان", "گوشیان", "گوشیها", "گونهان", "گونهها", "گونیای", "گوهران", "گوهرها", "گوینده", "گیرهان", "گیرهها", "گیلاسی", "گیوهان", "گیوهها", "یاستان", "یاسشان", "یاسمان", "یاسمنی", "یاسوجی", "یاقتان", "یاقشان", "یاقمان", "یاقوتی", "یخچالی", "یزدتان", "یزدشان", "یزدمان", "یشمیان", "یشمیها", "یقهتان", "یقهشان", "یقهمان", "یمنتان", "یمنشان", "یمنمان", "یوروان", "یوروها", "یوزتان", "یوزشان", "یوزمان"]};
+
+    // State Constants
+    const MAX_GUESSES = 6;
+    const STORAGE_KEY = 'WORDLE_FA_STATE_V3';
+    const STATS_KEY = 'WORDLE_FA_STATS_V3';
+    const SETTINGS_KEY = 'WORDLE_FA_SETTINGS_V3';
+
+    // Application State
+    const state = {
+      wordLength: 5,
+      isDaily: false,
+      hardMode: false,
+      strictDictionary: false,
+      keyboardSize: 'large', // 'large' or 'xlarge'
+      lastRejectedWord: null,
+      soundEnabled: true,
+      vibrateEnabled: true,
+      targetWord: '',
+      guesses: [],
+      currentGuess: '',
+      isGameOver: false,
+      isWon: false,
+      keyStates: {},
+      stats: {
+        played: 0,
+        won: 0,
+        currentStreak: 0,
+        maxStreak: 0,
+        distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+      }
+    };
+
+    function cleanPersian(text) {
+      if (!text) return '';
+      return text
+        .replace(/ي/g, 'ی')
+        .replace(/ك/g, 'ک')
+        .replace(/ة/g, 'ه')
+        .replace(/إ/g, 'ا')
+        .replace(/أ/g, 'ا')
+        .replace(/ء/g, '')
+        .replace(/[\u064B-\u065F\u0670\u200c\s]/g, '');
+    }
+
+    let audioCtx = null;
+    function playTone(freq, type = 'sine', duration = 0.08) {
+      if (!state.soundEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function soundKeyPress() { playTone(440, 'triangle', 0.05); }
+    function soundDelete() { playTone(300, 'sine', 0.06); }
+    function soundInvalid() { playTone(180, 'sawtooth', 0.15); }
+    function soundFlip(index) { playTone(300 + (index * 70), 'sine', 0.09); }
+    function soundWin() {
+      if (!state.soundEnabled) return;
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+        setTimeout(() => playTone(freq, 'triangle', 0.2), idx * 120);
+      });
+    }
+
+    function triggerHaptic(duration = 20) {
+      if (state.vibrateEnabled && navigator.vibrate) {
+        try { navigator.vibrate(duration); } catch (e) {}
+      }
+    }
+
+    function saveCompressedState() {
+      try {
+        const payload = {
+          wordLength: state.wordLength,
+          isDaily: state.isDaily,
+          targetWord: state.targetWord,
+          guesses: state.guesses,
+          isGameOver: state.isGameOver,
+          isWon: state.isWon,
+          keyStates: state.keyStates,
+          dailyDate: new Date().toISOString().slice(0, 10)
+        };
+        const rawJson = JSON.stringify(payload);
+        const compressed = LZString.compressToUTF16(rawJson);
+        localStorage.setItem(STORAGE_KEY, compressed);
+        updateCompressionReadout(rawJson, compressed);
+      } catch (err) {}
+    }
+
+    function saveCompressedStats() {
+      try {
+        const rawJson = JSON.stringify(state.stats);
+        const compressed = LZString.compressToUTF16(rawJson);
+        localStorage.setItem(STATS_KEY, compressed);
+      } catch (err) {}
+    }
+
+    function saveCompressedSettings() {
+      try {
+        const payload = {
+          wordLength: state.wordLength,
+          isDaily: state.isDaily,
+          hardMode: state.hardMode,
+          strictDictionary: state.strictDictionary,
+          keyboardSize: state.keyboardSize,
+          soundEnabled: state.soundEnabled,
+          vibrateEnabled: state.vibrateEnabled
+        };
+        const rawJson = JSON.stringify(payload);
+        const compressed = LZString.compressToUTF16(rawJson);
+        localStorage.setItem(SETTINGS_KEY, compressed);
+      } catch (err) {}
+    }
+
+    function loadPersistedData() {
+      try {
+        const compressedSettings = localStorage.getItem(SETTINGS_KEY);
+        if (compressedSettings) {
+          const raw = LZString.decompressFromUTF16(compressedSettings);
+          if (raw) {
+            const data = JSON.parse(raw);
+            if (data.wordLength) state.wordLength = data.wordLength;
+            if (typeof data.isDaily === 'boolean') state.isDaily = data.isDaily;
+            if (typeof data.hardMode === 'boolean') state.hardMode = data.hardMode;
+            if (typeof data.strictDictionary === 'boolean') state.strictDictionary = data.strictDictionary;
+            if (data.keyboardSize) state.keyboardSize = data.keyboardSize;
+            if (typeof data.soundEnabled === 'boolean') state.soundEnabled = data.soundEnabled;
+            if (typeof data.vibrateEnabled === 'boolean') state.vibrateEnabled = data.vibrateEnabled;
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const compressedStats = localStorage.getItem(STATS_KEY);
+        if (compressedStats) {
+          const raw = LZString.decompressFromUTF16(compressedStats);
+          if (raw) state.stats = JSON.parse(raw);
+        }
+      } catch (e) {}
+
+      try {
+        const compressedState = localStorage.getItem(STORAGE_KEY);
+        if (compressedState) {
+          const raw = LZString.decompressFromUTF16(compressedState);
+          if (raw) {
+            const saved = JSON.parse(raw);
+            const today = new Date().toISOString().slice(0, 10);
+            if (saved.isDaily && saved.dailyDate !== today) {
+              initNewGame();
+              return;
+            }
+            if (saved.wordLength === state.wordLength && saved.targetWord) {
+              state.targetWord = saved.targetWord;
+              state.guesses = saved.guesses || [];
+              state.isGameOver = !!saved.isGameOver;
+              state.isWon = !!saved.isWon;
+              state.keyStates = saved.keyStates || {};
+              updateCompressionReadout(raw, compressedState);
+              return;
+            }
+          }
+        }
+      } catch (e) {}
+
+      initNewGame();
+    }
+
+    function updateCompressionReadout(raw, compressed) {
+      try {
+        const rawBytes = raw ? new Blob([raw]).size : 0;
+        const compBytes = compressed ? new Blob([compressed]).size : 0;
+        const compElem = document.getElementById('compression-stats');
+        const ratioElem = document.getElementById('lz-ratio');
+        if (compElem) {
+          compElem.textContent = 'فشرده: ' + compBytes + 'B (اصلی: ' + rawBytes + 'B)';
+        }
+        if (ratioElem && rawBytes > 0) {
+          const savedPercent = Math.max(0, Math.round((1 - compBytes / rawBytes) * 100));
+          ratioElem.textContent = savedPercent + '٪ کاهش حجم با LZ';
+        }
+      } catch (e) {}
+    }
+
+    function getTargetList(len) {
+      return TARGET_WORDS[String(len)] || TARGET_WORDS['5'];
+    }
+
+    function getDailyWord(len) {
+      const list = getTargetList(len);
+      const today = new Date();
+      const dateNum = (today.getFullYear() * 10000) + ((today.getMonth() + 1) * 100) + today.getDate() + (len * 31);
+      const index = Math.abs(dateNum) % list.length;
+      return list[index];
+    }
+
+    function getRandomWord(len) {
+      const list = getTargetList(len);
+      const index = Math.floor(Math.random() * list.length);
+      return list[index];
+    }
+
+    function initNewGame() {
+      state.guesses = [];
+      state.currentGuess = '';
+      state.lastRejectedWord = null;
+      state.isGameOver = false;
+      state.isWon = false;
+      state.keyStates = {};
+
+      if (state.isDaily) {
+        state.targetWord = getDailyWord(state.wordLength);
+      } else {
+        state.targetWord = getRandomWord(state.wordLength);
+      }
+
+      saveCompressedState();
+      renderAll();
+    }
+
+    function renderBoard() {
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+
+      board.style.gridTemplateColumns = 'repeat(' + state.wordLength + ', minmax(0, 1fr))';
+
+      const maxWidthMap = { 3: '200px', 4: '250px', 5: '310px', 6: '340px' };
+      board.style.maxWidth = maxWidthMap[state.wordLength] || '310px';
+      board.style.width = '100%';
+
+      for (let r = 0; r < MAX_GUESSES; r++) {
+        const rowGuess = state.guesses[r];
+        const isCurrentRow = r === state.guesses.length;
+
+        for (let c = 0; c < state.wordLength; c++) {
+          const tile = document.createElement('div');
+          tile.className = 'tile aspect-square rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-xl sm:text-2xl border-2 transition select-none';
+          tile.id = 'tile-' + r + '-' + c;
+
+          if (rowGuess) {
+            const letter = rowGuess[c] || '';
+            tile.textContent = letter;
+            const evalStatus = evaluateLetter(rowGuess, c, state.targetWord);
+
+            if (evalStatus === 'correct') {
+              tile.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white', 'shadow-md', 'shadow-emerald-900/40');
+            } else if (evalStatus === 'present') {
+              tile.classList.add('bg-amber-500', 'border-amber-400', 'text-white', 'shadow-md', 'shadow-amber-900/40');
+            } else {
+              tile.classList.add('bg-slate-800/90', 'border-slate-700/80', 'text-slate-400');
+            }
+            tile.classList.add('flipped');
+
+          } else if (isCurrentRow) {
+            const letter = state.currentGuess[c] || '';
+            tile.textContent = letter;
+            if (letter) {
+              tile.classList.add('border-emerald-500/80', 'text-white', 'bg-slate-800/50', 'animate-pop');
+            } else {
+              tile.classList.add('border-slate-800', 'text-slate-300', 'bg-slate-900/60');
+            }
+          } else {
+            tile.classList.add('border-slate-800/80', 'bg-slate-950/40', 'text-transparent');
+          }
+
+          board.appendChild(tile);
+        }
+      }
+    }
+
+    function lettersMatch(a, b) {
+      if (a === b) return true;
+      if ((a === 'ا' && b === 'آ') || (a === 'آ' && b === 'ا')) return true;
+      return false;
+    }
+
+    function evaluateLetter(guess, index, target) {
+      const letter = guess[index];
+      if (lettersMatch(target[index], letter)) return 'correct';
+
+      let targetCount = 0;
+      for (let i = 0; i < target.length; i++) {
+        if (lettersMatch(target[i], letter)) targetCount++;
+      }
+
+      let exactMatches = 0;
+      for (let i = 0; i < guess.length; i++) {
+        if (lettersMatch(guess[i], letter) && lettersMatch(target[i], letter)) exactMatches++;
+      }
+
+      let remainingAllowed = targetCount - exactMatches;
+      if (remainingAllowed <= 0) return 'absent';
+
+      let occurrencesBefore = 0;
+      for (let i = 0; i < index; i++) {
+        if (lettersMatch(guess[i], letter) && !lettersMatch(target[i], guess[i])) occurrencesBefore++;
+      }
+
+      if (occurrencesBefore < remainingAllowed) {
+        return 'present';
+      }
+      return 'absent';
+    }
+
+    // Render Persian Touch Keyboard with EXTRA LARGE, High-Visibility Keys
+    function renderKeyboard() {
+      const kbContainer = document.getElementById('keyboard');
+      kbContainer.innerHTML = '';
+
+      // Re-balanced 4-Row Layout: At most 9 keys per row!
+      // This increases the touch width of each key by 35% compared to 12 keys per row!
+      const rows = [
+        ['ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ'],
+        ['ح', 'ج', 'چ', 'ش', 'س', 'ی', 'ب', 'ل', 'ا'],
+        ['ت', 'ن', 'م', 'ک', 'گ', 'ظ', 'ط', 'ز', 'ر'],
+        ['ENTER', 'ذ', 'د', 'پ', 'و', 'ژ', 'آ', 'BACKSPACE']
+      ];
+
+      // Key size presets
+      const isXL = state.keyboardSize === 'xlarge';
+      const keyHeightClass = isXL ? 'h-14 sm:h-16' : 'h-12 sm:h-14';
+      const letterTextClass = isXL ? 'text-xl sm:text-2xl font-black' : 'text-lg sm:text-xl font-black';
+
+      rows.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'flex justify-center gap-1 sm:gap-1.5 w-full';
+
+        row.forEach(key => {
+          const btn = document.createElement('button');
+          btn.dataset.key = key;
+
+          if (key === 'ENTER') {
+            btn.className = 'key-btn flex-[1.4] ' + keyHeightClass + ' rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-1 shadow-md shadow-emerald-950 border border-emerald-400/40';
+            btn.innerHTML = '<i class="fa-solid fa-check text-xs"></i> <span>ثبت</span>';
+          } else if (key === 'BACKSPACE') {
+            btn.className = 'key-btn flex-[1.2] ' + keyHeightClass + ' rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-600 text-slate-200 font-black text-base sm:text-lg flex items-center justify-center border border-slate-700 shadow-md';
+            btn.innerHTML = '<i class="fa-solid fa-delete-left"></i>';
+          } else {
+            const status = state.keyStates[key];
+            let colorClasses = 'bg-slate-800 text-white hover:bg-slate-700 border-slate-700/80 shadow-md';
+            if (status === 'correct') {
+              colorClasses = 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-700/40';
+            } else if (status === 'present') {
+              colorClasses = 'bg-amber-500 text-white border-amber-400 shadow-md shadow-amber-700/40';
+            } else if (status === 'absent') {
+              colorClasses = 'bg-slate-900/95 text-slate-500 border-slate-800/80 opacity-60';
+            }
+
+            btn.className = 'key-btn flex-1 ' + keyHeightClass + ' rounded-xl ' + letterTextClass + ' flex items-center justify-center border ' + colorClasses;
+            btn.textContent = key;
+          }
+
+          btn.addEventListener('click', () => handleVirtualKey(key));
+          rowDiv.appendChild(btn);
+        });
+
+        kbContainer.appendChild(rowDiv);
+      });
+    }
+
+    function handleVirtualKey(key) {
+      if (state.isGameOver) return;
+
+      if (key === 'ENTER') {
+        submitGuess();
+      } else if (key === 'BACKSPACE') {
+        deleteLetter();
+      } else {
+        insertLetter(key);
+      }
+    }
+
+    function insertLetter(letter) {
+      if (state.currentGuess.length >= state.wordLength) return;
+      state.currentGuess += letter;
+      state.lastRejectedWord = null;
+      soundKeyPress();
+      triggerHaptic(18);
+      renderBoard();
+    }
+
+    function deleteLetter() {
+      if (state.currentGuess.length === 0) return;
+      state.currentGuess = state.currentGuess.slice(0, -1);
+      state.lastRejectedWord = null;
+      soundDelete();
+      triggerHaptic(18);
+      renderBoard();
+    }
+
+    function isWordInDictionary(word, len) {
+      const lenStr = String(len);
+      const dictList = DICTIONARY[lenStr] || [];
+      const targetList = TARGET_WORDS[lenStr] || [];
+
+      if (dictList.includes(word) || targetList.includes(word)) return true;
+
+      const var1 = word.replace(/آ/g, 'ا');
+      const var2 = word.startsWith('ا') ? ('آ' + word.slice(1)) : word;
+
+      if (dictList.includes(var1) || targetList.includes(var1)) return true;
+      if (dictList.includes(var2) || targetList.includes(var2)) return true;
+
+      return false;
+    }
+
+    function submitGuess() {
+      const rawGuess = cleanPersian(state.currentGuess);
+
+      if (rawGuess.length < state.wordLength) {
+        showToast('کلمه باید ' + state.wordLength + ' حرفی باشد!', 'warning');
+        soundInvalid();
+        triggerHaptic([30, 40, 30]);
+        shakeCurrentRow();
+        return;
+      }
+
+      if (state.strictDictionary) {
+        const isValid = isWordInDictionary(rawGuess, state.wordLength);
+        if (!isValid) {
+          if (state.lastRejectedWord === rawGuess) {
+            showToast('کلمه با تأیید شما پذیرفته شد', 'success');
+            state.lastRejectedWord = null;
+          } else {
+            state.lastRejectedWord = rawGuess;
+            showToast('کلمه در واژگان پایه نیست! برای ثبت اجباری دکمه «ثبت» را مجدداً بزنید.', 'warning');
+            soundInvalid();
+            triggerHaptic([50, 50, 50]);
+            shakeCurrentRow();
+            return;
+          }
+        }
+      }
+
+      if (state.hardMode && state.guesses.length > 0) {
+        const lastGuess = state.guesses[state.guesses.length - 1];
+        for (let i = 0; i < state.wordLength; i++) {
+          if (evaluateLetter(lastGuess, i, state.targetWord) === 'correct' && !lettersMatch(rawGuess[i], lastGuess[i])) {
+            showToast('حالت سخت: حرف ' + (i + 1) + ' باید «' + lastGuess[i] + '» باشد!', 'warning');
+            soundInvalid();
+            shakeCurrentRow();
+            return;
+          }
+        }
+      }
+
+      state.guesses.push(rawGuess);
+      state.currentGuess = '';
+      state.lastRejectedWord = null;
+
+      for (let i = 0; i < rawGuess.length; i++) {
+        const char = rawGuess[i];
+        const status = evaluateLetter(rawGuess, i, state.targetWord);
+        const currentStatus = state.keyStates[char];
+
+        if (status === 'correct') {
+          state.keyStates[char] = 'correct';
+        } else if (status === 'present' && currentStatus !== 'correct') {
+          state.keyStates[char] = 'present';
+        } else if (!currentStatus) {
+          state.keyStates[char] = 'absent';
+        }
+      }
+
+      for (let i = 0; i < state.wordLength; i++) {
+        setTimeout(() => soundFlip(i), i * 150);
+      }
+
+      let allMatch = true;
+      for (let i = 0; i < state.wordLength; i++) {
+        if (!lettersMatch(rawGuess[i], state.targetWord[i])) {
+          allMatch = false;
+          break;
+        }
+      }
+
+      if (allMatch) {
+        state.isGameOver = true;
+        state.isWon = true;
+        recordGameEnd(true);
+        setTimeout(() => {
+          soundWin();
+          triggerWinCelebration();
+          showGameOverModal(true);
+        }, state.wordLength * 160 + 200);
+      } else if (state.guesses.length >= MAX_GUESSES) {
+        state.isGameOver = true;
+        state.isWon = false;
+        recordGameEnd(false);
+        setTimeout(() => {
+          showGameOverModal(false);
+        }, state.wordLength * 160 + 200);
+      }
+
+      saveCompressedState();
+      renderAll();
+    }
+
+    function shakeCurrentRow() {
+      const rowIndex = state.guesses.length;
+      for (let c = 0; c < state.wordLength; c++) {
+        const tile = document.getElementById('tile-' + rowIndex + '-' + c);
+        if (tile) {
+          tile.classList.remove('animate-shake');
+          void tile.offsetWidth;
+          tile.classList.add('animate-shake');
+        }
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (state.isGameOver) return;
+
+      if (e.key === 'Enter') {
+        submitGuess();
+      } else if (e.key === 'Backspace') {
+        deleteLetter();
+      } else {
+        const char = e.key;
+        if (/^[\u0600-\u06FF]$/.test(char)) {
+          const cleanChar = cleanPersian(char);
+          if (cleanChar) insertLetter(cleanChar);
+        }
+      }
+    });
+
+    function recordGameEnd(won) {
+      state.stats.played++;
+      if (won) {
+        state.stats.won++;
+        state.stats.currentStreak++;
+        if (state.stats.currentStreak > state.stats.maxStreak) {
+          state.stats.maxStreak = state.stats.currentStreak;
+        }
+        const numGuesses = state.guesses.length;
+        if (state.stats.distribution[numGuesses] !== undefined) {
+          state.stats.distribution[numGuesses]++;
+        }
+      } else {
+        state.stats.currentStreak = 0;
+      }
+      saveCompressedStats();
+    }
+
+    function triggerWinCelebration() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899']
+        });
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      let borderClass = 'border-slate-700 bg-slate-900/95 text-white';
+      let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
+
+      if (type === 'error') {
+        borderClass = 'border-rose-500/50 bg-rose-950/90 text-rose-100';
+        icon = '<i class="fa-solid fa-triangle-exclamation text-rose-400"></i>';
+      } else if (type === 'warning') {
+        borderClass = 'border-amber-500/50 bg-amber-950/90 text-amber-100';
+        icon = '<i class="fa-solid fa-bell text-amber-400"></i>';
+      } else if (type === 'success') {
+        borderClass = 'border-emerald-500/50 bg-emerald-950/90 text-emerald-100';
+        icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+      }
+
+      toast.className = 'px-3.5 py-2 rounded-xl border text-xs shadow-xl backdrop-blur-md flex items-center gap-2 transform transition-all duration-300 translate-y-[-10px] opacity-0 ' + borderClass;
+      toast.innerHTML = icon + ' <span>' + message + '</span>';
+
+      container.appendChild(toast);
+      
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-[-10px]', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'scale-90');
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    function updateHeaderUI() {
+      document.getElementById('badge-mode-length').textContent = state.wordLength + ' حرفی';
+      document.getElementById('badge-mode-type').textContent = state.isDaily ? 'کلمه روزانه' : 'بازی آزاد';
+
+      document.querySelectorAll('.mode-len-btn').forEach(btn => {
+        const len = parseInt(btn.dataset.len, 10);
+        if (len === state.wordLength) {
+          btn.className = 'mode-len-btn px-2.5 py-1 rounded-lg font-bold transition bg-emerald-600 text-white shadow-sm shadow-emerald-500/30';
+        } else {
+          btn.className = 'mode-len-btn px-2.5 py-1 rounded-lg font-bold transition text-slate-400 hover:text-white';
+        }
+      });
+    }
+
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) {
+        modal.classList.remove('hidden');
+        if (id === 'modal-stats') populateStatsModal();
+        if (id === 'modal-settings') populateSettingsModal();
+        if (id === 'modal-words') populateWordBankModal();
+      }
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('hidden');
+    }
+
+    document.querySelectorAll('.modal-close-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const modal = e.target.closest('[id^="modal-"]');
+        if (modal) modal.classList.add('hidden');
+      });
+    });
+
+    function populateStatsModal() {
+      const s = state.stats;
+      document.getElementById('stat-played').textContent = s.played;
+      const winPct = s.played > 0 ? Math.round((s.won / s.played) * 100) : 0;
+      document.getElementById('stat-win-rate').textContent = winPct + '٪';
+      document.getElementById('stat-streak').textContent = s.currentStreak;
+      document.getElementById('stat-max-streak').textContent = s.maxStreak;
+
+      const distContainer = document.getElementById('guess-distribution');
+      distContainer.innerHTML = '';
+      const maxCount = Math.max(1, ...Object.values(s.distribution));
+
+      for (let i = 1; i <= 6; i++) {
+        const count = s.distribution[i] || 0;
+        const pct = Math.max(8, Math.round((count / maxCount) * 100));
+        const isCurrentWin = state.isWon && state.guesses.length === i;
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+        row.innerHTML = '<span class="w-3 text-slate-400 font-bold">' + i + '</span>' +
+          '<div class="flex-1 bg-slate-800 rounded-md overflow-hidden h-5 flex items-center">' +
+          '<div class="' + (isCurrentWin ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-200') + ' h-full flex items-center justify-end px-2 font-bold text-[11px] transition-all duration-500" style="width: ' + pct + '%">' +
+          count + '</div></div>';
+        distContainer.appendChild(row);
+      }
+    }
+
+    function populateSettingsModal() {
+      const strictBtn = document.getElementById('toggle-strict-dict');
+      const dailyBtn = document.getElementById('toggle-daily-mode');
+      const hardBtn = document.getElementById('toggle-hard-mode');
+      const soundBtn = document.getElementById('toggle-sound');
+      const vibrateBtn = document.getElementById('toggle-vibrate');
+
+      function updateToggleUI(elem, active) {
+        const circle = elem.querySelector('div');
+        if (active) {
+          elem.classList.remove('bg-slate-700');
+          elem.classList.add('bg-emerald-600');
+          circle.classList.add('-translate-x-5');
+          circle.classList.remove('translate-x-0');
+        } else {
+          elem.classList.add('bg-slate-700');
+          elem.classList.remove('bg-emerald-600');
+          circle.classList.remove('-translate-x-5');
+          circle.classList.add('translate-x-0');
+        }
+      }
+
+      updateToggleUI(strictBtn, state.strictDictionary);
+      updateToggleUI(dailyBtn, state.isDaily);
+      updateToggleUI(hardBtn, state.hardMode);
+      updateToggleUI(soundBtn, state.soundEnabled);
+      updateToggleUI(vibrateBtn, state.vibrateEnabled);
+
+      // Keyboard Size UI
+      const btnLarge = document.getElementById('btn-kbsize-large');
+      const btnXLarge = document.getElementById('btn-kbsize-xlarge');
+      const label = document.getElementById('current-kb-size-label');
+
+      if (state.keyboardSize === 'xlarge') {
+        label.textContent = 'فوق‌العاده بزرگ (XL)';
+        btnXLarge.className = 'py-2 px-3 rounded-xl border border-emerald-500 bg-emerald-600/20 text-emerald-300 font-bold text-center';
+        btnLarge.className = 'py-2 px-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-bold text-center';
+      } else {
+        label.textContent = 'بزرگ (مخصوص لمس آسان)';
+        btnLarge.className = 'py-2 px-3 rounded-xl border border-emerald-500 bg-emerald-600/20 text-emerald-300 font-bold text-center';
+        btnXLarge.className = 'py-2 px-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-bold text-center';
+      }
+    }
+
+    let currentBankTab = 'all';
+    function populateWordBankModal() {
+      const container = document.getElementById('words-display-container');
+      const query = cleanPersian(document.getElementById('input-search-words').value || '');
+      container.innerHTML = '';
+
+      let list = [];
+      if (currentBankTab === 'all') {
+        Object.keys(TARGET_WORDS).forEach(k => list.push(...TARGET_WORDS[k]));
+      } else {
+        list = TARGET_WORDS[currentBankTab] || [];
+      }
+
+      if (query) {
+        list = list.filter(w => w.includes(query));
+      }
+
+      document.getElementById('word-bank-count').textContent = list.length + ' واژه هدف یافت شد';
+
+      const preview = list.slice(0, 150);
+      preview.forEach(w => {
+        const chip = document.createElement('span');
+        chip.className = 'px-2 py-1 rounded-lg bg-slate-800 text-slate-200 text-xs border border-slate-700/60 font-medium hover:border-emerald-500 cursor-default';
+        chip.textContent = w;
+        container.appendChild(chip);
+      });
+
+      if (list.length > 150) {
+        const note = document.createElement('div');
+        note.className = 'w-full text-center text-[10px] text-slate-400 py-1';
+        note.textContent = '... و ' + (list.length - 150) + ' کلمه دیگر';
+        container.appendChild(note);
+      }
+    }
+
+    function showGameOverModal(won) {
+      const title = document.getElementById('gameover-title');
+      const subtitle = document.getElementById('gameover-subtitle');
+      const iconBox = document.getElementById('gameover-icon-box');
+      const icon = document.getElementById('gameover-icon');
+      const wordBox = document.getElementById('gameover-word');
+
+      wordBox.textContent = state.targetWord;
+
+      if (won) {
+        title.textContent = 'آفرین! پیروز شدید 🎉';
+        const attemptsWord = state.guesses.length === 1 ? 'یک حدس نبوغ‌آمیز' : state.guesses.length + ' حدس';
+        subtitle.textContent = 'شما در ' + attemptsWord + ' به جواب درست رسیدید.';
+        iconBox.className = 'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl mb-3 shadow-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+        icon.className = 'fa-solid fa-trophy';
+      } else {
+        title.textContent = 'این بار نشد!';
+        subtitle.textContent = 'اشکالی نداره، در بازی بعدی حتماً موفق می‌شوید.';
+        iconBox.className = 'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl mb-3 shadow-lg bg-slate-800 text-slate-400 border border-slate-700';
+        icon.className = 'fa-solid fa-face-frown';
+      }
+
+      openModal('modal-gameover');
+    }
+
+    function shareResult() {
+      const modeText = state.isDaily ? 'چالش روزانه' : 'بازی آزاد';
+      const score = state.isWon ? (state.guesses.length + '/' + MAX_GUESSES) : 'X/6';
+      let text = 'وردل فارسی (' + modeText + ' • ' + state.wordLength + ' حرفی) ' + score + '\n\n';
+
+      state.guesses.forEach(guess => {
+        let rowEmoji = '';
+        for (let i = 0; i < state.wordLength; i++) {
+          const evalStatus = evaluateLetter(guess, i, state.targetWord);
+          if (evalStatus === 'correct') rowEmoji += '🟩';
+          else if (evalStatus === 'present') rowEmoji += '🟨';
+          else rowEmoji += '⬛';
+        }
+        text += rowEmoji + '\n';
+      });
+
+      text += '\nبازی وردل فارسی آفلاین و مدرن 🎮';
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('نتیجه در کلیپ‌بورد کپی شد!', 'success');
+        }).catch(() => {
+          fallbackCopyText(text);
+        });
+      } else {
+        fallbackCopyText(text);
+      }
+    }
+
+    function fallbackCopyText(text) {
+      const tempArea = document.createElement('textarea');
+      tempArea.value = text;
+      tempArea.style.position = 'fixed';
+      tempArea.style.left = '-9999px';
+      document.body.appendChild(tempArea);
+      tempArea.focus();
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('نتیجه کپی شد!', 'success');
+      } catch (err) {
+        showToast('خطا در کپی متن!', 'error');
+      }
+      document.body.removeChild(tempArea);
+    }
+
+    function initListeners() {
+      document.getElementById('btn-help').addEventListener('click', () => openModal('modal-help'));
+      document.getElementById('btn-stats').addEventListener('click', () => openModal('modal-stats'));
+      document.getElementById('btn-settings').addEventListener('click', () => openModal('modal-settings'));
+      document.getElementById('btn-words').addEventListener('click', () => openModal('modal-words'));
+      document.getElementById('btn-brand').addEventListener('click', () => openModal('modal-help'));
+      
+      document.getElementById('btn-restart').addEventListener('click', () => {
+        triggerHaptic(25);
+        initNewGame();
+        showToast('کلمه جدید آغاز شد!', 'info');
+      });
+
+      document.querySelectorAll('.mode-len-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const len = parseInt(e.currentTarget.dataset.len, 10);
+          if (len !== state.wordLength) {
+            state.wordLength = len;
+            saveCompressedSettings();
+            initNewGame();
+            showToast('حالت ' + len + ' حرفی فعال شد', 'info');
+          }
+        });
+      });
+
+      document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        saveCompressedSettings();
+        const icon = document.getElementById('sound-icon');
+        icon.className = state.soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark text-slate-500';
+        showToast(state.soundEnabled ? 'صدا وصل شد' : 'صدا قطع شد', 'info');
+      });
+
+      document.getElementById('toggle-strict-dict').addEventListener('click', () => {
+        state.strictDictionary = !state.strictDictionary;
+        saveCompressedSettings();
+        populateSettingsModal();
+        showToast(state.strictDictionary ? 'اعتبارسنجی دیکشنری فعال شد' : 'پذیرش آزاد کلمات فعال شد (بدون خطا)', 'info');
+      });
+
+      document.getElementById('btn-kbsize-large').addEventListener('click', () => {
+        state.keyboardSize = 'large';
+        saveCompressedSettings();
+        populateSettingsModal();
+        renderKeyboard();
+        showToast('اندازه کیبورد: بزرگ', 'info');
+      });
+
+      document.getElementById('btn-kbsize-xlarge').addEventListener('click', () => {
+        state.keyboardSize = 'xlarge';
+        saveCompressedSettings();
+        populateSettingsModal();
+        renderKeyboard();
+        showToast('اندازه کیبورد: فوق‌العاده بزرگ (XL)', 'info');
+      });
+
+      document.getElementById('toggle-daily-mode').addEventListener('click', () => {
+        state.isDaily = !state.isDaily;
+        saveCompressedSettings();
+        initNewGame();
+        populateSettingsModal();
+        showToast(state.isDaily ? 'حالت چالش روزانه فعال شد' : 'حالت بازی آزاد فعال شد', 'info');
+      });
+
+      document.getElementById('toggle-hard-mode').addEventListener('click', () => {
+        state.hardMode = !state.hardMode;
+        saveCompressedSettings();
+        populateSettingsModal();
+        showToast(state.hardMode ? 'حالت سخت فعال شد' : 'حالت عادی فعال شد', 'info');
+      });
+
+      document.getElementById('toggle-sound').addEventListener('click', () => {
+        state.soundEnabled = !state.soundEnabled;
+        saveCompressedSettings();
+        populateSettingsModal();
+        const icon = document.getElementById('sound-icon');
+        icon.className = state.soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark text-slate-500';
+      });
+
+      document.getElementById('toggle-vibrate').addEventListener('click', () => {
+        state.vibrateEnabled = !state.vibrateEnabled;
+        saveCompressedSettings();
+        populateSettingsModal();
+        if (state.vibrateEnabled) triggerHaptic(30);
+      });
+
+      document.getElementById('btn-purge-storage').addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STATS_KEY);
+        localStorage.removeItem(SETTINGS_KEY);
+        state.stats = { played: 0, won: 0, currentStreak: 0, maxStreak: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 } };
+        closeModal('modal-settings');
+        initNewGame();
+        showToast('تمام داده‌های کش پاکسازی شدند', 'success');
+      });
+
+      document.getElementById('btn-share-result').addEventListener('click', shareResult);
+      document.getElementById('btn-gameover-share').addEventListener('click', shareResult);
+
+      document.getElementById('btn-reset-stats').addEventListener('click', () => {
+        state.stats = { played: 0, won: 0, currentStreak: 0, maxStreak: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 } };
+        saveCompressedStats();
+        populateStatsModal();
+        showToast('آمار بازنشانی شد', 'info');
+      });
+
+      document.getElementById('btn-gameover-next').addEventListener('click', () => {
+        closeModal('modal-gameover');
+        initNewGame();
+      });
+
+      document.querySelectorAll('.wtab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.wtab-btn').forEach(b => {
+            b.classList.remove('bg-emerald-600', 'text-white');
+            b.classList.add('bg-slate-800', 'text-slate-300');
+          });
+          e.currentTarget.classList.remove('bg-slate-800', 'text-slate-300');
+          e.currentTarget.classList.add('bg-emerald-600', 'text-white');
+          currentBankTab = e.currentTarget.dataset.wtab;
+          populateWordBankModal();
+        });
+      });
+
+      document.getElementById('input-search-words').addEventListener('input', populateWordBankModal);
+    }
+
+    function initPWA() {
+      if ('serviceWorker' in navigator) {
+        try {
+          const swCode = `
+            const CACHE_NAME = 'wordle-fa-cache-v3';
+            self.addEventListener('install', (e) => {
+              self.skipWaiting();
+            });
+            self.addEventListener('activate', (e) => {
+              e.waitUntil(clients.claim());
+            });
+            self.addEventListener('fetch', (e) => {
+              e.respondWith(
+                fetch(e.request).catch(() => caches.match(e.request))
+              );
+            });
+          `;
+          const blob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(blob);
+          navigator.serviceWorker.register(swUrl).then(() => {
+            console.log('Offline ServiceWorker registered successfully.');
+          }).catch(() => {});
+        } catch (e) {}
+      }
+
+      let deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const banner = document.getElementById('pwa-banner');
+        if (banner) banner.classList.remove('hidden');
+      });
+
+      document.getElementById('btn-pwa-install').addEventListener('click', () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(() => {
+            deferredPrompt = null;
+            document.getElementById('pwa-banner').classList.add('hidden');
+          });
+        }
+      });
+
+      document.getElementById('btn-pwa-dismiss').addEventListener('click', () => {
+        document.getElementById('pwa-banner').classList.add('hidden');
+      });
+    }
+
+    function renderAll() {
+      updateHeaderUI();
+      renderBoard();
+      renderKeyboard();
+    }
+
+    window.onload = () => {
+      loadPersistedData();
+      initListeners();
+      initPWA();
+      renderAll();
+    };
+  </script>
+</body>
+</html>
